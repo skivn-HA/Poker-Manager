@@ -1,0 +1,41 @@
+Poker Manager — new Firebase project
+====================================
+
+This is the new Poker Manager app. Do not change the original project.
+
+Leave these alone:
+- Firebase project: poker-pasc
+- Site: https://skivn-ha.github.io/PASC/
+- Folder: PASC-v1
+
+The new app stores its season under club/snapshot.
+Phone remote control still uses liveGames.
+Only a signed-in person can read or write the season file.
+
+Realtime Database rules:
+
+{
+  "rules": {
+    "liveGames": {
+      ".read": true,
+      ".write": true
+    },
+    "club": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    }
+  }
+}
+
+Authentication:
+- Enable Email/Password.
+- Leave email-link sign-in off.
+- Add each committee member under Authentication → Users.
+- There is no public sign-up in the app.
+
+Use the same email on the player's Player Management record.
+Committee = Yes gets the full app. A matched player who is not committee
+gets Points Table, Blind Timer, and Numbers.
+
+The first login on the laptop that has the latest season should publish
+that device if the server is empty.

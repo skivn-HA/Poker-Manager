@@ -1,0 +1,17 @@
+Recommended for You: Firebase
+Why?
+You don’t need to manage a server.
+It’s free for small projects.
+It’s designed for exactly this use case (multi-user, real-time, secure).
+You can add authentication for multiple admins.
+How to Get Started with Firebase (Short Version)
+Create a Firebase Project:
+Go to Firebase Console, create a project.
+Add Firebase to Your Web App:
+Get your config snippet and add the Firebase JS SDK to your HTML.
+Set Up Firestore or Realtime Database:
+In the Firebase console, enable Firestore or Realtime Database.
+Replace localStorage Code:
+Use Firebase’s API to read/write player/admin/settings data.
+(Optional) Add Firebase Authentication:
+Allow multiple admins to log in securely.

@@ -1,0 +1,72 @@
+Poker app licensing
+
+Here are practical directions for a 1-year time-restricted license for PASC, given it’s a static PWA (GitHub Pages, localStorage, no backend today).
+________________________________________
+1. Simple expiry date in the app (easiest)
+Store an expiry date (e.g. 2027-07-13) in code or in a small config file.
+•	On load / login: if today > expiry, show a “license expired” screen and block use (or read-only mode).
+•	Pros: Very simple, no server, works offline.
+•	Cons: Easy to bypass by editing the file or changing the device clock (unless you add more checks).
+Good for: honest club use, not strong DRM.
+________________________________________
+2. License key + expiry (still client-side)
+User enters a key once; app decodes/validates it and stores licensedUntil in localStorage.
+•	Key could encode: club name, expiry date, maybe season.
+•	Pros: Feels more “licensed”; you can issue renewals without redeploying if renewal = new key.
+•	Cons: Still bypassable; key algorithm must not be trivial if you care at all about tampering.
+Good for: annual renewal workflow (“email me for next year’s key”).
+________________________________________
+3. Deploy-time license (per release)
+Each GitHub deploy build embeds build date + expiry (e.g. 365 days from build).
+•	Pros: You control renewal by publishing a new deploy/ once a year.
+•	Cons: Everyone on same deploy shares same expiry; updating the app also updates the clock unless you separate “app version” from “license”.
+Good for: “subscription = yearly deploy refresh” for one club.
+________________________________________
+4. Online license check (stronger, needs infrastructure)
+Small backend or serverless function: POST /validate with license id → returns valid + expiry.
+•	App checks on login (and optionally every N days while online).
+•	Grace period offline (e.g. 7–14 days since last successful check).
+•	Pros: Revoke keys, real renewal, harder to bypass than pure client-side.
+•	Cons: Hosting, privacy, must handle offline tournaments.
+Good for: multiple clubs / paid product where bypass matters more.
+________________________________________
+5. Hybrid (often the sweet spot for PASC)
+Combine what you already have with light licensing:
+Layer	Idea
+Owner gate	Keep admin login; only owner can set/enter license or renewal key.
+Expiry	licensedUntil in localStorage + optional signed token from you.
+Soft vs hard	Hard: block app after expiry. Soft: warn 30/7/1 days, then block stats save / admin only.
+Renewal	New key extends licensedUntil without wiping club data.
+Backup	License state included in your existing admin export/import.
+________________________________________
+6. What to restrict when expired?
+Pick one policy (affects UX and how annoying bypass is):
+•	Full lock — login screen only + “contact for renewal”.
+•	Play-only lock — can view points table, can’t start games or save.
+•	Admin lock — members can’t log in; owner sees renewal screen.
+•	Read-only — view history, no new games (useful for archiving a season).
+________________________________________
+7. Security reality (important)
+For a client-side app, any license is obfuscation, not true enforcement. Assume:
+•	Clock change can be tried → optional: store lastSeenDate and reject big backward jumps.
+•	File edit can remove checks → optional: checksum critical strings or split validation across a few places (still not bulletproof).
+For one club you trust, a clear expiry + renewal key is usually enough.
+________________________________________
+8. Renewal UX ideas
+•	30 / 7 / 1 day toast or banner: “License expires on …”
+•	Admin → License section: expiry date, “Enter renewal key”, link/email to you.
+•	Annual workflow: you generate key → they paste → +1 year.
+•	Optional: expiry tied to season number instead of calendar (e.g. “Season 20+ requires renewal”) — fits PASC’s model.
+________________________________________
+9. Minimal implementation sketch (when you’re ready)
+1.	adminSettings.licensedUntil (ISO date) or separate localStorage key.
+2.	isLicenseValid() checked in showAppAfterLogin() / showPage().
+3.	Owner-only screen to enter renewal key that sets licensedUntil.
+4.	Optional: signed payload base64(json + hmac) with expiry + club id (key = shared secret only you know).
+________________________________________
+Recommendation for PASC
+For single-club, GitHub Pages, yearly use:
+•	Start with (5) hybrid: licensedUntil + owner-entered renewal key once a year, hard block after expiry (or soft warn then block save).
+•	Add online check later only if you sell to multiple clubs or need revocation.
+If you want to go deeper next, we can compare calendar year vs season-based, hard vs soft lock, and offline grace — still without touching code until you say so.
+

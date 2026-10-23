@@ -1,0 +1,9 @@
+Snapshots/
+Backups/
+*.zip
+Thumbs.db
+*.docx
+.firebase/
+firebase-debug.log
+*-debug.log
+node_modules/
