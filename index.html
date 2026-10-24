@@ -1860,7 +1860,7 @@
                 <h3>Settings overview</h3>
                 <p>Optional features are switched on and off with small slider switches — green means enabled, grey means disabled. Switch changes save immediately; other fields use the Save Settings button.</p>
                 <ul>
-                    <li><strong>General:</strong> Club name, club logo, season, max players/table, season-final qualification, and switches for Raffle Cash, Teams Event, Game Vouchers (with voucher value), Remote Control (with QR display minutes), and the Random Number Generator.</li>
+                    <li><strong>General:</strong> Club name, club logo, season, max players/table, season-final qualification, and switches for Raffle Cash, Teams Event, Game Vouchers (with voucher value), Remote Control (with QR display minutes), the Random Number Generator, and emailing stats when a game is saved.</li>
                     <li><strong>Blind Timer:</strong> Voice, blind levels, set all times, breaks, and whether the next blind level is shown.</li>
                     <li><strong>Club Cash &amp; Payout:</strong> Club vs player cash split and 1st/2nd place payout %. 3rd place is calculated from the remainder.</li>
                     <li><strong>Bonuses:</strong> Ghost Player, Bonus Hand, Bad Beat, and Birthday — optional season features and pool amounts.</li>
@@ -1877,7 +1877,7 @@
                 <h3>Shared season</h3>
                 <ul>
                     <li>The server file is the latest players, settings, pools, and saved games. Other committee members receive it when they sign in with a club email.</li>
-                    <li><strong>Save Game</strong> uploads it automatically for a committee email login.</li>
+                    <li><strong>Save Game</strong> uploads it automatically for a committee email login. With <strong>Email stats when a game is saved</strong> turned on, that same login also emails the stats from the club Gmail to every player email address. A username login does not send that email.</li>
                     <li><strong>Publish from this device</strong> sends this device’s season to the server. Use it on the laptop that has the real latest season when the server is still empty, or when this device should replace the server copy.</li>
                     <li><strong>Load latest from server</strong> replaces this device with the server file.</li>
                     <li>On email login, if this device does not already match the server, choose <strong>Load latest</strong> or <strong>Keep this device</strong>. Keeping this device does not overwrite the server.</li>
@@ -2643,6 +2643,13 @@
                                         <span class="text-sm font-semibold">Random Number Generator</span>
                                         <button type="button" onclick="toggleRandomNumberGeneratorEnabled()" id="toggleRandomNumberGeneratorBtn" class="pasc-switch self-start mt-1" role="switch" aria-checked="false" aria-label="Random Number Generator"></button>
                                     </div>
+                                    <div class="admin-general-field">
+                                        <span class="text-sm font-semibold">Email stats when a game is saved</span>
+                                        <button type="button" onclick="toggleEmailStatsOnSave()" id="toggleEmailStatsOnSaveBtn" class="pasc-switch self-start mt-1" role="switch" aria-checked="true" aria-label="Email stats when a game is saved"></button>
+                                        <p class="text-xs text-poker-text/70 mt-1">Sends from the club Gmail when you are signed in with a club email. A username login still only saves on this device.</p>
+                                        <label for="adminStatsEmailWebAppUrl" class="text-sm font-semibold mt-2">Club mail link</label>
+                                        <input type="url" id="adminStatsEmailWebAppUrl" placeholder="Paste the Google script web app link" class="px-3 py-2 rounded-lg bg-poker-primary border border-poker-accent text-poker-text" style="width:100%; max-width:36rem;">
+                                    </div>
                                     <button type="submit" class="self-start mt-1 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg font-medium text-white">Save Settings</button>
                                 </form>
                             </div>
@@ -2940,13 +2947,13 @@
         
         <!-- Version Number - Appears on all pages -->
         <div id="appVersionFooterWrap" class="text-center mt-4 pt-3 border-t border-poker-accent/20">
-            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.10.24.4</p>
+            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.10.24.5</p>
         </div>
     </div>
 
     <script>
         const PASC_APP_NAME = 'Poker Manager';
-        const PASC_APP_VERSION = '2026.10.24.4';
+        const PASC_APP_VERSION = '2026.10.24.5';
 
         // Poker Manager Firebase project. This is not the original poker-pasc project.
         const FIREBASE_CONFIG = {
@@ -6948,12 +6955,115 @@
             if (voucherValueInput) voucherValueInput.value = getGameVouchersSettings().value;
             updateGameVouchersToggleButton();
             updateGameVouchersVisibility();
+            updateEmailStatsOnSaveToggleButton();
+            const statsMailInput = document.getElementById('adminStatsEmailWebAppUrl');
+            if (statsMailInput) statsMailInput.value = getStatsEmailSettings().webAppUrl;
         }
 
         function populateAdminSeasonNumberForm() {
             normalizeAdminSettings();
             const seasonInput = document.getElementById('adminSeasonNumber');
             if (seasonInput) seasonInput.value = adminSettings.seasonNumber ?? 1;
+        }
+
+        function getStatsEmailSettings() {
+            normalizeAdminSettings();
+            return {
+                enabled: adminSettings.emailStatsOnSave !== false,
+                webAppUrl: (adminSettings.statsEmailWebAppUrl || '').trim()
+            };
+        }
+
+        function updateEmailStatsOnSaveToggleButton() {
+            setToggleSwitchState('toggleEmailStatsOnSaveBtn', getStatsEmailSettings().enabled);
+        }
+
+        function toggleEmailStatsOnSave() {
+            normalizeAdminSettings();
+            adminSettings.emailStatsOnSave = !getStatsEmailSettings().enabled;
+            saveAdminSettings();
+            updateEmailStatsOnSaveToggleButton();
+        }
+
+        function buildStatsEmailText(report) {
+            return report.bodyLines.concat([
+                '',
+                '✨Points Table✨',
+                'Login to check your ranking.',
+                'https://skivn-ha.github.io/Poker-Manager/'
+            ]).join('\n');
+        }
+
+        function postClubStatsEmail(url, payload) {
+            return new Promise((resolve, reject) => {
+                const frameName = 'clubStatsMailFrame';
+                let iframe = document.getElementById(frameName);
+                if (!iframe) {
+                    iframe = document.createElement('iframe');
+                    iframe.id = frameName;
+                    iframe.name = frameName;
+                    iframe.hidden = true;
+                    iframe.setAttribute('aria-hidden', 'true');
+                    document.body.appendChild(iframe);
+                }
+                const timer = setTimeout(() => {
+                    window.removeEventListener('message', onMessage);
+                    reject(new Error('The club mailbox did not answer.'));
+                }, 25000);
+                function onMessage(event) {
+                    const data = event.data;
+                    if (!data || data.source !== 'poker-manager-stats-mail') return;
+                    clearTimeout(timer);
+                    window.removeEventListener('message', onMessage);
+                    if (data.ok) resolve({ ok: true });
+                    else reject(new Error(data.error || 'Could not send the stats email.'));
+                }
+                window.addEventListener('message', onMessage);
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = url;
+                form.target = frameName;
+                form.acceptCharset = 'UTF-8';
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'payload';
+                input.value = JSON.stringify(payload);
+                form.appendChild(input);
+                document.body.appendChild(form);
+                form.submit();
+                form.remove();
+            });
+        }
+
+        async function sendStatsEmailAfterSave(report) {
+            const savedMessage = 'Game saved to Points Table with full Game Dashboard data.';
+            const settings = getStatsEmailSettings();
+            if (!settings.enabled) return { message: savedMessage, type: 'success' };
+            if (!getClubCloudUser()) {
+                return { message: savedMessage + ' Sign in with a club email to email the stats.', type: 'info' };
+            }
+            if (!hasFullAppAccess()) return { message: savedMessage, type: 'success' };
+            if (!settings.webAppUrl) {
+                return { message: savedMessage + ' Add the club mail link in Settings → General to email the stats.', type: 'info' };
+            }
+            const recipients = getAdminPlayerEmails();
+            if (!recipients.length) {
+                return { message: savedMessage + ' No player email addresses to send to.', type: 'info' };
+            }
+            if (!report) return { message: savedMessage, type: 'success' };
+            try {
+                const token = await getClubCloudUser().getIdToken();
+                await postClubStatsEmail(settings.webAppUrl, {
+                    token,
+                    subject: report.heading,
+                    body: buildStatsEmailText(report),
+                    bcc: recipients
+                });
+                return { message: 'Game saved and the stats email was sent.', type: 'success' };
+            } catch (err) {
+                console.error(err);
+                return { message: savedMessage + ' The stats email could not be sent.', type: 'error' };
+            }
         }
 
         function getGhostPlayerCashSettings() {
@@ -7494,7 +7604,8 @@
             currentGameSaved = true;
             updateStats();
             updateSaveGameButton();
-            showToast('Game saved to Points Table with full Game Dashboard data.', 'success');
+            const mailResult = await sendStatsEmailAfterSave(buildStatsReportContent());
+            showToast(mailResult.message, mailResult.type);
         }
 
         function getPointsTableAggregates() {
@@ -10336,12 +10447,7 @@
             }
 
             const subject = encodeURIComponent(report.heading);
-            const body = encodeURIComponent(report.bodyLines.concat([
-                '',
-                '✨Points Table✨',
-                'Login to check your ranking.',
-                'https://skivn-ha.github.io/Poker-Manager/'
-            ]).join('\n'));
+            const body = encodeURIComponent(buildStatsEmailText(report));
             const recipientEmails = getAdminPlayerEmails();
             if (recipientEmails.length === 0) {
                 showToast('No email addresses found in Settings > Player Management.', 'error');
@@ -10911,6 +11017,8 @@
             if (adminSettings.gameVouchersEnabled == null) adminSettings.gameVouchersEnabled = false;
             if (adminSettings.gameVoucherValue == null) adminSettings.gameVoucherValue = 50;
             if (adminSettings.showNextBlindLevel == null) adminSettings.showNextBlindLevel = true;
+            if (adminSettings.emailStatsOnSave == null) adminSettings.emailStatsOnSave = true;
+            if (adminSettings.statsEmailWebAppUrl == null) adminSettings.statsEmailWebAppUrl = '';
             if (!adminSettings.masterPasswordHash) adminSettings.masterPasswordHash = DEFAULT_MASTER_PASSWORD_HASH;
         }
         normalizeAdminSettings();
@@ -11433,6 +11541,8 @@
                 gameVouchersEnabled: false,
                 gameVoucherValue: 50,
                 showNextBlindLevel: true,
+                emailStatsOnSave: true,
+                statsEmailWebAppUrl: '',
                 masterPasswordHash: DEFAULT_MASTER_PASSWORD_HASH
             };
         }
@@ -11883,6 +11993,7 @@
                     adminSettings.minGamesForSeasonFinal = minGamesForSeasonFinal;
                     adminSettings.remoteCodeDisplayMinutes = remoteCodeDisplayMinutes;
                     adminSettings.gameVoucherValue = gameVoucherValue;
+                    adminSettings.statsEmailWebAppUrl = (document.getElementById('adminStatsEmailWebAppUrl')?.value || '').trim();
                     saveAdminSettings();
                     populateAdminGeneralForm();
                     applyClubBranding();
