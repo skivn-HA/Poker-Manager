@@ -2,16 +2,29 @@ var CLUB_MAILBOX = 'pokeracademysocialclub@gmail.com';
 var FIREBASE_PROJECT = 'poker-manager-club';
 
 function readPayload(e) {
-  if (e && e.parameter && e.parameter.payload) return e.parameter.payload;
+  if (e && e.parameter && e.parameter.payload) return decodeMailPayload(e.parameter.payload);
   var contents = e && e.postData ? e.postData.contents : '';
   if (!contents) return '';
   if (contents.charAt(0) === '{') return contents;
   var match = /(?:^|&)payload=([^&]*)/.exec(contents);
   if (!match) return '';
   try {
-    return decodeURIComponent(match[1].replace(/\+/g, ' '));
+    return decodeMailPayload(decodeURIComponent(match[1].replace(/\+/g, ' ')));
   } catch (err) {
     return '';
+  }
+}
+
+function decodeMailPayload(value) {
+  var text = String(value || '').replace(/[\r\n\s]/g, '');
+  if (text.indexOf('%') !== -1) {
+    try { text = decodeURIComponent(text); } catch (err) {}
+  }
+  if (!text || text.charAt(0) === '{') return text;
+  try {
+    return Utilities.newBlob(Utilities.base64Decode(text)).getDataAsString('UTF-8');
+  } catch (err) {
+    return text;
   }
 }
 
