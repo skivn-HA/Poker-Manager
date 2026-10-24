@@ -2947,13 +2947,13 @@
         
         <!-- Version Number - Appears on all pages -->
         <div id="appVersionFooterWrap" class="text-center mt-4 pt-3 border-t border-poker-accent/20">
-            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.10.24.5</p>
+            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.10.24.6</p>
         </div>
     </div>
 
     <script>
         const PASC_APP_NAME = 'Poker Manager';
-        const PASC_APP_VERSION = '2026.10.24.5';
+        const PASC_APP_VERSION = '2026.10.24.6';
 
         // Poker Manager Firebase project. This is not the original poker-pasc project.
         const FIREBASE_CONFIG = {
@@ -6994,24 +6994,41 @@
             ]).join('\n');
         }
 
+        function clubStatsMailUrl(url) {
+            const clean = String(url || '').trim();
+            if (!clean) return '';
+            if (/\/exec\/?$/.test(clean)) return clean.replace(/\/$/, '');
+            const id = clean.match(/\/macros\/s\/([^/]+)/);
+            if (id) return `https://script.google.com/macros/s/${id[1]}/exec`;
+            return clean;
+        }
+
         function postClubStatsEmail(url, payload) {
             return new Promise((resolve, reject) => {
+                const action = clubStatsMailUrl(url);
+                if (!/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(action)) {
+                    reject(new Error('The club mail link should be the web app link ending in /exec.'));
+                    return;
+                }
                 const frameName = 'clubStatsMailFrame';
                 let iframe = document.getElementById(frameName);
                 if (!iframe) {
                     iframe = document.createElement('iframe');
                     iframe.id = frameName;
                     iframe.name = frameName;
-                    iframe.hidden = true;
                     iframe.setAttribute('aria-hidden', 'true');
+                    iframe.style.cssText = 'position:fixed;left:0;top:0;width:1px;height:1px;border:0;opacity:0;pointer-events:none;';
                     document.body.appendChild(iframe);
                 }
                 const timer = setTimeout(() => {
                     window.removeEventListener('message', onMessage);
-                    reject(new Error('The club mailbox did not answer.'));
-                }, 25000);
+                    reject(new Error('The club mailbox did not answer. In the script deployment, Execute as must be Me and access must be Anyone, then deploy a new version.'));
+                }, 45000);
                 function onMessage(event) {
-                    const data = event.data;
+                    let data = event.data;
+                    if (typeof data === 'string') {
+                        try { data = JSON.parse(data); } catch (err) { return; }
+                    }
                     if (!data || data.source !== 'poker-manager-stats-mail') return;
                     clearTimeout(timer);
                     window.removeEventListener('message', onMessage);
@@ -7021,7 +7038,7 @@
                 window.addEventListener('message', onMessage);
                 const form = document.createElement('form');
                 form.method = 'POST';
-                form.action = url;
+                form.action = action;
                 form.target = frameName;
                 form.acceptCharset = 'UTF-8';
                 const input = document.createElement('input');
@@ -7062,7 +7079,8 @@
                 return { message: 'Game saved and the stats email was sent.', type: 'success' };
             } catch (err) {
                 console.error(err);
-                return { message: savedMessage + ' The stats email could not be sent.', type: 'error' };
+                const reason = err && err.message ? ` ${err.message}` : '';
+                return { message: `${savedMessage} The stats email could not be sent.${reason}`, type: 'error' };
             }
         }
 

@@ -1,9 +1,23 @@
 var CLUB_MAILBOX = 'pokeracademysocialclub@gmail.com';
 var FIREBASE_PROJECT = 'poker-manager-club';
 
+function readPayload(e) {
+  if (e && e.parameter && e.parameter.payload) return e.parameter.payload;
+  var contents = e && e.postData ? e.postData.contents : '';
+  if (!contents) return '';
+  if (contents.charAt(0) === '{') return contents;
+  var match = /(?:^|&)payload=([^&]*)/.exec(contents);
+  if (!match) return '';
+  try {
+    return decodeURIComponent(match[1].replace(/\+/g, ' '));
+  } catch (err) {
+    return '';
+  }
+}
+
 function doPost(e) {
   try {
-    var raw = e && e.parameter ? e.parameter.payload : '';
+    var raw = readPayload(e);
     var data = JSON.parse(raw || '{}');
     var check = verifyFirebaseUser(data.token);
     if (!check.ok) return htmlResult(false, check.error);
@@ -54,6 +68,10 @@ function htmlResult(ok, error) {
     ok: ok === true,
     error: error || ''
   }).replace(/</g, '\\u003c');
-  var html = '<!DOCTYPE html><html><body><script>(window.top||window.parent).postMessage(' + message + ',"*");</script></body></html>';
+  var html = '<!DOCTYPE html><html><body><script>'
+    + 'var msg=' + message + ';'
+    + 'function deliver(){var w=window;for(var i=0;i<6&&w;i++){try{w.postMessage(msg,"*");}catch(err){}if(!w.parent||w.parent===w)break;w=w.parent;}}'
+    + 'deliver();setTimeout(deliver,400);setTimeout(deliver,1200);'
+    + '</script></body></html>';
   return HtmlService.createHtmlOutput(html).setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
