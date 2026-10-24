@@ -49,6 +49,87 @@
             background-color: #f97316;
         }
 
+        .session-kind {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            padding: 0.4rem 0.55rem;
+            border-radius: 9999px;
+            line-height: 1;
+            color: #fff;
+        }
+
+        .session-kind-server {
+            background: #056d78;
+        }
+
+        .session-kind-local {
+            background: #b45309;
+        }
+
+        .session-user-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            max-width: min(16rem, 52vw);
+            background: #1f2937;
+            color: #f9fafb;
+            border: 1px solid rgba(138, 43, 226, 0.35);
+            border-radius: 9999px;
+            padding: 0.2rem 0.25rem 0.2rem 0.7rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            line-height: 1.1;
+        }
+
+        .session-user-btn:hover {
+            border-color: #f97316;
+        }
+
+        .session-user-name {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .session-user-icon {
+            width: 1.85rem;
+            height: 1.85rem;
+            border-radius: 9999px;
+            background: #056d78;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .session-user-menu {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 0.4rem);
+            min-width: 8.5rem;
+            background: #1f2937;
+            border: 1px solid rgba(138, 43, 226, 0.35);
+            border-radius: 0.75rem;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+            padding: 0.35rem;
+        }
+
+        .session-logout-btn {
+            width: 100%;
+            text-align: left;
+            color: #fff;
+            background: #b91c1c;
+            border-radius: 0.5rem;
+            padding: 0.45rem 0.7rem;
+            font-weight: 600;
+        }
+
+        .session-logout-btn:hover {
+            background: #991b1b;
+        }
+
         /* Centre the club logos and login box vertically on the login screen */
         body.login-view {
             display: flex;
@@ -820,7 +901,8 @@
         }
 
         body.points-table-display-mode #appMainNav,
-        body.points-table-display-mode #appLogoutBtn,
+        body.points-table-display-mode #sessionBar,
+        body.fullscreen-mode #sessionBar,
         body.points-table-display-mode #openPointsTableWindowBtn,
         body.points-table-display-mode #emailPointsTableBtn,
         body.points-table-display-mode #points-table .points-email-btn {
@@ -1797,10 +1879,24 @@
             <img id="clubLogoPrimary" src="images/poker_manager_120_transparent.png" alt="Poker Manager" class="block" style="height:120px; width:auto; object-fit:contain;" />
         </div>
     </div>
-    <div id="appChrome" class="fixed top-2 right-2 z-50 flex gap-2 hidden">
+    <div id="appChrome" class="fixed top-2 right-2 z-50 flex items-center gap-2 hidden">
         <button id="installAppBtn" onclick="installApp()" class="hidden bg-purple-600 hover:bg-orange-500 text-white rounded-full px-3 py-2 shadow-lg focus:outline-none text-sm font-semibold" title="Install as app">
             <i class="fas fa-download mr-1"></i>Install
         </button>
+        <div id="sessionBar" class="flex items-center gap-2">
+            <span id="sessionKind" class="session-kind session-kind-local">Local</span>
+            <div id="sessionUserWrap" class="relative">
+                <button type="button" id="sessionUserBtn" class="session-user-btn" aria-haspopup="menu" aria-expanded="false" title="Signed in">
+                    <span id="sessionUserName" class="session-user-name">Signed in</span>
+                    <span class="session-user-icon" aria-hidden="true"><i class="fas fa-user"></i></span>
+                </button>
+                <div id="sessionUserMenu" class="session-user-menu hidden" role="menu">
+                    <button type="button" id="appLogoutBtn" class="session-logout-btn" role="menuitem">
+                        <i class="fas fa-sign-out-alt mr-2" aria-hidden="true"></i>Log out
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
     <div class="container mx-auto px-4 pb-4 pt-0">
         <!-- Login Page -->
@@ -1857,11 +1953,6 @@
                 <li data-requires-full-access>
                     <button data-page="admin" onclick="showPage('admin')" class="px-4 py-2 bg-red-700 hover:bg-orange-500 text-white rounded-lg transition-colors duration-300 font-semibold shadow">
                         <i class="fas fa-cog mr-2"></i>Settings
-                    </button>
-                </li>
-                <li>
-                    <button type="button" id="appLogoutBtn" class="px-4 py-2 bg-red-700 hover:bg-red-800 text-white rounded-lg transition-colors duration-300 font-semibold shadow">
-                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
                     </button>
                 </li>
             </ul>
@@ -2830,13 +2921,13 @@
         
         <!-- Version Number - Appears on all pages -->
         <div id="appVersionFooterWrap" class="text-center mt-4 pt-3 border-t border-poker-accent/20">
-            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.10.24.1</p>
+            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.10.24.2</p>
         </div>
     </div>
 
     <script>
         const PASC_APP_NAME = 'Poker Manager';
-        const PASC_APP_VERSION = '2026.10.24.1';
+        const PASC_APP_VERSION = '2026.10.24.2';
 
         // Poker Manager Firebase project. This is not the original poker-pasc project.
         const FIREBASE_CONFIG = {
@@ -2919,6 +3010,8 @@
         // App login (session only — cleared when browser/app closes)
         const APP_LOGIN_KEY = 'pokerManagerAppLoggedIn';
         const APP_LOGIN_ROLE_KEY = 'pokerManagerAppLoginRole';
+        const APP_LOGIN_NAME_KEY = 'pokerManagerAppLoginName';
+        const APP_LOGIN_KIND_KEY = 'pokerManagerAppLoginKind';
 
         const PASC_TOAST_ICONS = {
             success: 'fa-check-circle text-green-400',
@@ -3171,7 +3264,40 @@
             } else {
                 sessionStorage.removeItem(APP_LOGIN_KEY);
                 sessionStorage.removeItem(APP_LOGIN_ROLE_KEY);
+                sessionStorage.removeItem(APP_LOGIN_NAME_KEY);
+                sessionStorage.removeItem(APP_LOGIN_KIND_KEY);
+                document.getElementById('sessionUserMenu')?.classList.add('hidden');
+                document.getElementById('sessionUserBtn')?.setAttribute('aria-expanded', 'false');
             }
+        }
+
+        function setSessionIdentity(name, kind) {
+            sessionStorage.setItem(APP_LOGIN_NAME_KEY, name || '');
+            sessionStorage.setItem(APP_LOGIN_KIND_KEY, kind === 'server' ? 'server' : 'local');
+            updateSessionBar();
+        }
+
+        function updateSessionBar() {
+            const kindEl = document.getElementById('sessionKind');
+            const nameEl = document.getElementById('sessionUserName');
+            const btn = document.getElementById('sessionUserBtn');
+            if (!kindEl || !nameEl || !btn) return;
+            let kind = sessionStorage.getItem(APP_LOGIN_KIND_KEY) || '';
+            let name = sessionStorage.getItem(APP_LOGIN_NAME_KEY) || '';
+            const cloudUser = getClubCloudUser();
+            if (cloudUser?.email && kind !== 'local') {
+                kind = 'server';
+                name = cloudUser.email;
+            }
+            if (kind !== 'server') kind = 'local';
+            if (!name) name = kind === 'server' ? 'Signed in' : 'Local user';
+            const server = kind === 'server';
+            kindEl.textContent = server ? 'Server' : 'Local';
+            kindEl.className = server ? 'session-kind session-kind-server' : 'session-kind session-kind-local';
+            kindEl.title = server ? 'Signed in to the shared season' : 'Signed in on this device only';
+            nameEl.textContent = name;
+            btn.title = name;
+            btn.setAttribute('aria-label', `Signed in as ${name}. Open account menu`);
         }
 
         function updateAppNavigation() {
@@ -3409,6 +3535,7 @@
             updateGameVouchersVisibility();
             document.getElementById('appShell')?.classList.remove('hidden');
             document.getElementById('appChrome')?.classList.remove('hidden');
+            updateSessionBar();
             if (!getClubCloudUser()) stopClubSnapshotWatch();
             else if (!clubLoginSyncStarted) void resumeClubCloudSession();
             else if (!clubSeasonSyncInProgress) startClubSnapshotWatch();
@@ -8724,6 +8851,7 @@
             const user = getClubCloudUser();
             if (!user) return;
             setAppLoggedIn(true, roleForClubEmail(user));
+            setSessionIdentity(user.email || '', 'server');
             showAppAfterLogin();
         }
 
@@ -11552,6 +11680,7 @@
                         if (result.ok) {
                             await signOutClubCloud();
                             setAppLoggedIn(true, result.role);
+                            setSessionIdentity(username, 'local');
                             if (loginError) loginError.classList.add('hidden');
                             showAppAfterLogin();
                         } else {
@@ -11572,6 +11701,26 @@
             if (appLogoutBtn) {
                 appLogoutBtn.addEventListener('click', logoutApp);
             }
+            const sessionUserBtn = document.getElementById('sessionUserBtn');
+            if (sessionUserBtn) {
+                sessionUserBtn.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    const menu = document.getElementById('sessionUserMenu');
+                    if (!menu) return;
+                    const willOpen = menu.classList.contains('hidden');
+                    menu.classList.toggle('hidden');
+                    sessionUserBtn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+                });
+            }
+            document.addEventListener('click', (event) => {
+                const wrap = document.getElementById('sessionUserWrap');
+                const menu = document.getElementById('sessionUserMenu');
+                if (!wrap || !menu || menu.classList.contains('hidden')) return;
+                if (!wrap.contains(event.target)) {
+                    menu.classList.add('hidden');
+                    sessionUserBtn?.setAttribute('aria-expanded', 'false');
+                }
+            });
             const adminSecurityForm = document.getElementById('adminSecurityForm');
             if (adminSecurityForm) {
                 adminSecurityForm.addEventListener('submit', async function(e) {
