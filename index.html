@@ -1778,25 +1778,36 @@
             <div class="pasc-help-body">
                 <h3>What this app is</h3>
                 <p><strong>Poker Manager</strong> is a club tournament helper for social poker nights. It runs in your browser (and can be installed as an app on phones). It handles player registration, table seating, blind timing, cash tracking, points, and optional phone remote control.</p>
-                <p>The shared season is stored on the club server. Sign in with a club email and every committee member opens the latest players, points, and settings. A username still opens the copy saved on this device. Use <strong>Settings → Backup / Restore</strong> to publish, load, or keep a file backup.</p>
+                <p>The shared season lives on the club server: players, points, settings, and pools. A club email opens that shared season. A username opens only the copy on this device.</p>
+
+                <h3>Signing in</h3>
+                <ul>
+                    <li>From the splash screen, press <strong>Login</strong>. Enter an email or a username, then the password.</li>
+                    <li>An address with <strong>@</strong> signs in to the club server. If this device is not already on the latest server file, the app asks whether to <strong>Load latest</strong> or <strong>Keep this device</strong>.</li>
+                    <li>A username without <strong>@</strong> is a local login. It does not read or change the shared season.</li>
+                    <li>If this browser is already signed in with an email, <strong>Continue as</strong> that address opens the app again.</li>
+                    <li>The top right shows <strong>Server</strong> or <strong>Local</strong>, then the email or username and a user icon. Click the name or icon to <strong>Log out</strong>.</li>
+                    <li>Committee access opens every tab. A club email that matches a non-committee player opens Points Table, Blind Timer, and Numbers. A club email that is not on the player list is treated as committee so the first admin can publish.</li>
+                    <li>Club emails are created in Firebase. The app has no sign-up form. Those emails are separate from the usernames in <strong>Security / Login</strong>.</li>
+                </ul>
 
                 <h3>Typical game night flow</h3>
                 <ul>
-                    <li><strong>Settings:</strong> Confirm club name, season, blinds, payout %, and optional features (ghost player, bonus hand, raffle, teams event, game vouchers, remote).</li>
+                    <li><strong>Settings:</strong> Confirm club name, season, blinds, payout %, and optional features (ghost player, bonus hand, raffle, teams event, game vouchers, remote, numbers).</li>
                     <li><strong>Registration:</strong> Enter game details, add players, assign tables, then press <strong>START GAME</strong>.</li>
                     <li><strong>Blind Timer:</strong> Run the clock, announce blinds, and (if Remote is enabled) show the join code/QR for phones.</li>
                     <li><strong>Eliminate players</strong> from Table Assignments or from a joined phone Remote until one winner remains.</li>
                     <li><strong>Game Dashboard:</strong> Review cash, pools, and results, then <strong>Save Game</strong> to the Points Table.</li>
-                    <li>Optionally email or print the game stats, and back up club data after the night.</li>
+                    <li>Optionally email or print the game stats. With a club email, Save Game also updates the shared season.</li>
                 </ul>
 
                 <h3>Main tabs</h3>
-                <p>The tab for the page you are on is highlighted orange.</p>
+                <p>The tab for the page you are on is highlighted orange. Log out is the user icon at the top right, not a tab.</p>
                 <ul>
                     <li><strong>Registration:</strong> Game details, player check-in, table assignments, raffle cash (if enabled), start game.</li>
                     <li><strong>Game Dashboard:</strong> Live cash breakdown, prize pools, ghost/bonus/bad beat tracking, points for the current game, save/email/print.</li>
                     <li><strong>Blind Timer:</strong> Levels, countdown, fullscreen timer, voice announcements, cash prize display.</li>
-                    <li><strong>Numbers:</strong> Random number picker for draws or side games.</li>
+                    <li><strong>Numbers:</strong> Random number picker for draws or side games. Hidden until enabled in Settings → General.</li>
                     <li><strong>Points Table:</strong> Season standings from saved games, qualification for season final, player emails.</li>
                     <li><strong>Remote:</strong> Host or join live remote control (if enabled in General settings).</li>
                     <li><strong>Settings:</strong> All club configuration (committee access required).</li>
@@ -1824,7 +1835,8 @@
                     <li>Top 3 places use the payout percentages (3rd is calculated automatically).</li>
                     <li><strong>Raffle Cash</strong> (if enabled) is entered on Registration and Game Dashboard and feeds club cash / optional bonus pools.</li>
                     <li><strong>Ghost Player</strong>, <strong>Bonus Hand</strong>, and <strong>Bad Beat Bonus</strong> each have enable/disable settings and season pools.</li>
-                    <li>Save Game locks the night into Points Table / Game Management history.</li>
+                    <li><strong>Save Game</strong> locks the night into Points Table / Game Management history. Declaring a winner does not do this by itself.</li>
+                    <li>When signed in with a club email and committee access, that save uploads the whole shared season about a second later. A username login keeps the night on this device only.</li>
                 </ul>
 
                 <h3>Points Table &amp; season</h3>
@@ -1848,22 +1860,29 @@
                 <h3>Settings overview</h3>
                 <p>Optional features are switched on and off with small slider switches — green means enabled, grey means disabled. Switch changes save immediately; other fields use the Save Settings button.</p>
                 <ul>
-                    <li><strong>General:</strong> Club name, club logo, season, max players/table, season-final qualification, and switches for Raffle Cash, Teams Event, Game Vouchers (with voucher value), and Remote Control (with QR display minutes).</li>
-                    <li><strong>Blind Timer:</strong> Voice, blind levels, set all times, breaks.</li>
-                    <li><strong>Player Management:</strong> Player records (name, email, phone, DOB, membership, committee).</li>
-                    <li><strong>Club Cash &amp; Payout:</strong> Club vs player cash split and 1st/2nd place payout %.</li>
+                    <li><strong>General:</strong> Club name, club logo, season, max players/table, season-final qualification, and switches for Raffle Cash, Teams Event, Game Vouchers (with voucher value), Remote Control (with QR display minutes), and the Random Number Generator.</li>
+                    <li><strong>Blind Timer:</strong> Voice, blind levels, set all times, breaks, and whether the next blind level is shown.</li>
+                    <li><strong>Club Cash &amp; Payout:</strong> Club vs player cash split and 1st/2nd place payout %. 3rd place is calculated from the remainder.</li>
                     <li><strong>Bonuses:</strong> Ghost Player, Bonus Hand, Bad Beat, and Birthday — optional season features and pool amounts.</li>
-                    <li><strong>Security:</strong> Master Password for the admin username, plus usernames/passwords for members. Committee gets full access; others get Points Table, Blind Timer, and Numbers. Shared season sign-in is a separate club email.</li>
-                    <li><strong>Game Management:</strong> List/delete saved games.</li>
-                    <li><strong>Season Statistics:</strong> Season totals and expenses.</li>
-                    <li><strong>Backup / Restore:</strong> Publish or load the shared season, or export, email, and import a file backup.</li>
-                    <li><strong>Reset App:</strong> Clear season data or factory reset everything.</li>
+                    <li><strong>Player Management:</strong> Player records (name, email, phone, date of birth, years, membership, committee). These names fill the registration list.</li>
+                    <li><strong>Security / Login:</strong> Master Password for the admin username, plus a username and password for each player. Committee gets full access; others get Points Table, Blind Timer, and Numbers. This is the local login. Club email sign-in is separate and is set up in Firebase.</li>
+                    <li><strong>Game Management:</strong> List and delete saved games. Deleting a game also removes it from the Points Table.</li>
+                    <li><strong>Season Statistics:</strong> Season totals and club expenses.</li>
+                    <li><strong>Backup / Restore:</strong> Publish from this device, load the latest server file, or export, email, and import a file backup.</li>
+                    <li><strong>Reset App:</strong> Clear season data, or factory-reset players, settings, and history. An email sign-in also updates the shared season.</li>
                     <li><strong>Remote Sync:</strong> Dev-only Firebase override for live remote hosting.</li>
                     <li><strong>About:</strong> App name, version, license details, and this Help guide.</li>
                 </ul>
 
-                <h3>Backup tip</h3>
-                <p>After Save Game, the shared season uploads for anyone signed in with a club email. Export still downloads a file backup. The export includes the app version, club name, and local export time.</p>
+                <h3>Shared season</h3>
+                <ul>
+                    <li>The server file is the latest players, settings, pools, and saved games. Other committee members receive it when they sign in with a club email.</li>
+                    <li><strong>Save Game</strong> uploads it automatically for a committee email login.</li>
+                    <li><strong>Publish from this device</strong> sends this device’s season to the server. Use it on the laptop that has the real latest season when the server is still empty, or when this device should replace the server copy.</li>
+                    <li><strong>Load latest from server</strong> replaces this device with the server file.</li>
+                    <li>On email login, if this device does not already match the server, choose <strong>Load latest</strong> or <strong>Keep this device</strong>. Keeping this device does not overwrite the server.</li>
+                    <li>File <strong>Export</strong> still downloads a backup. It includes the app version, club name, and local export time. Import replaces this device’s copy and, for a committee email login, can then upload.</li>
+                </ul>
             </div>
         </div>
     </div>
@@ -2505,10 +2524,10 @@
                         <nav id="adminSettingsNav" aria-label="Settings sections">
                             <button type="button" class="admin-settings-nav-btn" data-admin-section="general" onclick="showAdminSettingsSection('general')">General</button>
                             <button type="button" class="admin-settings-nav-btn" data-admin-section="blind-timer" onclick="showAdminSettingsSection('blind-timer')">Blind Timer</button>
-                            <button type="button" class="admin-settings-nav-btn" data-admin-section="player-management" onclick="showAdminSettingsSection('player-management')">Player Management</button>
                             <button type="button" class="admin-settings-nav-btn" data-admin-section="pasc-cash" onclick="showAdminSettingsSection('pasc-cash')">Club Cash &amp; Payout</button>
                             <button type="button" class="admin-settings-nav-btn" data-admin-section="bonuses" onclick="showAdminSettingsSection('bonuses')">Bonuses</button>
-                            <button type="button" class="admin-settings-nav-btn" data-admin-section="security" onclick="showAdminSettingsSection('security')">Security</button>
+                            <button type="button" class="admin-settings-nav-btn" data-admin-section="player-management" onclick="showAdminSettingsSection('player-management')">Player Management</button>
+                            <button type="button" class="admin-settings-nav-btn" data-admin-section="security" onclick="showAdminSettingsSection('security')">Security / Login</button>
                             <button type="button" class="admin-settings-nav-btn" data-admin-section="game-management" onclick="showAdminSettingsSection('game-management')">Game Management</button>
                             <button type="button" class="admin-settings-nav-btn" data-admin-section="season-statistics" onclick="showAdminSettingsSection('season-statistics')">Season Statistics</button>
                             <button type="button" class="admin-settings-nav-btn active" data-admin-section="backup-restore" onclick="showAdminSettingsSection('backup-restore')">Backup / Restore</button>
@@ -2628,7 +2647,7 @@
                                 </form>
                             </div>
                             <div id="adminSection-security" class="admin-settings-section hidden">
-                                <h3>Security</h3>
+                                <h3>Security / Login</h3>
                                 <p class="admin-section-intro">Set the Master Password for the admin username, and login usernames and passwords for members. Committee members can access the full app; other members can access Points Table, Blind Timer, and Numbers only. The shared season uses a club email created in Firebase, which is separate from these usernames.</p>
                                 <div class="mb-6">
                                     <label for="adminMasterPassword" class="text-sm font-semibold mb-1 block">Master Password</label>
@@ -2663,7 +2682,7 @@
                                 <p id="clubCloudStatus" class="text-sm mb-3 text-poker-text/80">Checking club server…</p>
                                 <div class="flex flex-wrap gap-2 mb-6">
                                     <button type="button" onclick="publishClubSnapshotFromSettings()" class="px-4 py-2 bg-[#056d78] hover:bg-orange-500 rounded-lg font-medium text-white">
-                                        <i class="fas fa-cloud-upload-alt mr-2"></i>Publish this device
+                                        <i class="fas fa-cloud-upload-alt mr-2"></i>Publish from this device
                                     </button>
                                     <button type="button" onclick="loadClubSnapshotFromSettings()" class="px-4 py-2 bg-blue-700 hover:bg-blue-800 rounded-lg font-medium text-white">
                                         <i class="fas fa-cloud-download-alt mr-2"></i>Load latest from server
@@ -2921,13 +2940,13 @@
         
         <!-- Version Number - Appears on all pages -->
         <div id="appVersionFooterWrap" class="text-center mt-4 pt-3 border-t border-poker-accent/20">
-            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.10.24.2</p>
+            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.10.24.3</p>
         </div>
     </div>
 
     <script>
         const PASC_APP_NAME = 'Poker Manager';
-        const PASC_APP_VERSION = '2026.10.24.2';
+        const PASC_APP_VERSION = '2026.10.24.3';
 
         // Poker Manager Firebase project. This is not the original poker-pasc project.
         const FIREBASE_CONFIG = {
@@ -8543,7 +8562,7 @@
                 return;
             }
             if (!revision) {
-                el.textContent = `Signed in as ${user.email}. No shared season is on the server yet. Publish this device if it has the latest season.${dirty}`;
+                el.textContent = `Signed in as ${user.email}. No shared season is on the server yet. Publish from this device if it has the latest season.${dirty}`;
                 return;
             }
             el.textContent = `Signed in as ${user.email}. This device is on revision ${revision}.${dirty}`;
@@ -8798,8 +8817,8 @@
             if (!server || !parseClubSnapshotData(server)) {
                 if (hasFullAppAccess() && localClubHasData()) {
                     const publish = await showConfirm(
-                        'No shared season is on the server yet.\n\nPublish this device only if it has the latest season from the last game night.',
-                        { confirmText: 'Publish this device', cancelText: 'Not now' }
+                        'No shared season is on the server yet.\n\nPublish from this device only if it has the latest season from the last game night.',
+                        { confirmText: 'Publish from this device', cancelText: 'Not now' }
                     );
                     if (publish) {
                         const result = await pushClubSnapshot(false);
