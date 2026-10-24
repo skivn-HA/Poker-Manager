@@ -1815,7 +1815,7 @@
                     <button type="submit" class="px-4 py-2 bg-[#056d78] hover:bg-orange-500 rounded-lg font-medium text-white">Login</button>
                     <button type="button" id="clubCloudContinueBtn" onclick="continueClubCloudSession()" class="hidden px-4 py-2 bg-zinc-700 hover:bg-orange-500 rounded-lg font-medium text-white"></button>
                 </form>
-                <p class="text-xs text-poker-text/70 text-center mt-3">A club email opens the shared season. A username opens this device's copy only.</p>
+                <p class="text-xs text-poker-text/70 text-center mt-3">A club email checks the shared season and asks before replacing this device. A username opens this device's copy only.</p>
                 <div id="appLoginError" class="text-red-400 mt-2 text-center hidden">Invalid username or password.</div>
             </div>
         </div>
@@ -2830,13 +2830,13 @@
         
         <!-- Version Number - Appears on all pages -->
         <div id="appVersionFooterWrap" class="text-center mt-4 pt-3 border-t border-poker-accent/20">
-            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.10.24</p>
+            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.10.24.1</p>
         </div>
     </div>
 
     <script>
         const PASC_APP_NAME = 'Poker Manager';
-        const PASC_APP_VERSION = '2026.10.24';
+        const PASC_APP_VERSION = '2026.10.24.1';
 
         // Poker Manager Firebase project. This is not the original poker-pasc project.
         const FIREBASE_CONFIG = {
@@ -8622,6 +8622,41 @@
             return result;
         }
 
+        function localClubMatchesServer(server) {
+            const data = parseClubSnapshotData(server);
+            if (!data) return false;
+            const serverGames = Array.isArray(data.pointsTableHistory) ? data.pointsTableHistory.length : 0;
+            const localGames = Array.isArray(pointsTableHistory) ? pointsTableHistory.length : 0;
+            if (serverGames !== localGames) return false;
+            return (server.revision || 0) === getLocalClubRevision() && !isClubDirty();
+        }
+
+        async function offerLoadLatestClubSnapshot(server) {
+            if (!server || clubConflictOpen) return;
+            const info = describeClubSnapshot(server);
+            if (!info.data) return;
+            clubConflictOpen = true;
+            clearTimeout(clubSyncTimer);
+            clubSyncTimer = null;
+            const localGames = Array.isArray(pointsTableHistory) ? pointsTableHistory.length : 0;
+            try {
+                const load = await showConfirm(
+                    `The latest shared season is not loaded on this device.\n\nServer: ${info.games} saved games, last saved by ${info.who} (${info.when}).\nThis device: ${localGames} saved games.\n\nLoad the latest server file? That replaces the season on this device.`,
+                    { confirmText: 'Load latest', cancelText: 'Keep this device' }
+                );
+                if (load) {
+                    applyClubSnapshot(server);
+                    showToast('Loaded the latest shared season from the server.', 'success');
+                } else {
+                    clubAutoPushPaused = true;
+                    showToast('Keeping this device\'s season. It will not replace the server file.', 'info');
+                }
+            } finally {
+                clubConflictOpen = false;
+                updateClubCloudStatus();
+            }
+        }
+
         async function syncClubSeasonAfterLogin() {
             clubSeasonSyncInProgress = true;
             try {
@@ -8647,21 +8682,9 @@
                 updateClubCloudStatus();
                 return;
             }
-            const serverRevision = server.revision || 0;
-            const localRevision = getLocalClubRevision();
-            const needsChoice = serverRevision > localRevision && (isClubDirty() || (localRevision === 0 && localClubHasData()));
-            if (needsChoice) {
-                await offerClubConflict(server);
+            if (!localClubMatchesServer(server)) {
+                await offerLoadLatestClubSnapshot(server);
                 return;
-            }
-            if (serverRevision > localRevision) {
-                applyClubSnapshot(server);
-                const info = describeClubSnapshot(server);
-                showToast(`Loaded the shared season saved by ${info.who}.`, 'success');
-                return;
-            }
-            if (serverRevision === localRevision && isClubDirty() && hasFullAppAccess()) {
-                scheduleClubPush();
             }
             updateClubCloudStatus();
             } finally {
