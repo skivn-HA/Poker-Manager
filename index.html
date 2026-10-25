@@ -1840,11 +1840,11 @@
                 <ul>
                     <li>From the splash screen, press <strong>Login</strong>. Enter an email or a username, then the password.</li>
                     <li>An address with <strong>@</strong> signs in to the club server. If this device is not already on the latest server file, the app asks whether to <strong>Load latest</strong> or <strong>Keep this device</strong>.</li>
-                    <li>A username without <strong>@</strong> is a local login. It does not read or change the shared season.</li>
+                    <li>A username without <strong>@</strong> is a local committee login. It does not read or change the shared season.</li>
                     <li>If this browser is already signed in with an email, <strong>Continue as</strong> that address opens the app again.</li>
-                    <li>The top right shows <strong>Server</strong> or <strong>Local</strong>, then the email or username and a user icon. Click the name or icon to <strong>Log out</strong>.</li>
-                    <li>Committee access opens every tab. A club email that matches a non-committee player opens Points Table, Blind Timer, and Numbers. A club email that is not on the player list is treated as committee so the first admin can publish.</li>
-                    <li>Club emails are created in Firebase. The app has no sign-up form. Those emails are separate from the usernames in <strong>Security / Login</strong>.</li>
+                    <li>The top right shows <strong>Server</strong> or <strong>Local</strong>, then the player name or username and a user icon. Click the name or icon to <strong>Log out</strong>.</li>
+                    <li>An email signs in to the shared season. It must match the email on a player in Player Management, and the top right then shows that player's name. Committee players get every tab. Other players get Points Table, Blind Timer, and Numbers.</li>
+                    <li>Create those emails in Firebase. The app has no sign-up form. An email that is not on the player list can still sign in as committee, so an admin can publish the season.</li>
                 </ul>
 
                 <h3>Typical game night flow</h3>
@@ -1921,7 +1921,7 @@
                     <li><strong>Club Cash &amp; Payout:</strong> Club vs player cash split and 1st/2nd place payout %. 3rd place is calculated from the remainder.</li>
                     <li><strong>Bonuses:</strong> Ghost Player, Bonus Hand, Bad Beat, and Birthday — optional season features and pool amounts.</li>
                     <li><strong>Player Management:</strong> Player records (name, email, phone, date of birth, years, membership, committee). These names fill the registration list.</li>
-                    <li><strong>Security / Login:</strong> Master Password for the admin username, plus a username and password for each player. Committee gets full access; others get Points Table, Blind Timer, and Numbers. This is the local login. Club email sign-in is separate and is set up in Firebase.</li>
+                    <li><strong>Security / Login:</strong> Master Password for the admin username, plus a local username and password for each committee member. Other members sign in with the email on their player record. Create that email in Firebase Authentication.</li>
                     <li><strong>Game Management:</strong> List and delete saved games. Deleting a game also removes it from the Points Table.</li>
                     <li><strong>Season Statistics:</strong> Season totals and club expenses.</li>
                     <li><strong>Backup / Restore:</strong> Publish from this device, load the latest server file, or export, email, and import a file backup.</li>
@@ -2716,7 +2716,7 @@
                             </div>
                             <div id="adminSection-security" class="admin-settings-section hidden">
                                 <h3>Security / Login</h3>
-                                <p class="admin-section-intro">Set the Master Password for the admin username, and login usernames and passwords for members. Committee members can access the full app; other members can access Points Table, Blind Timer, and Numbers only. The shared season uses a club email created in Firebase, which is separate from these usernames.</p>
+                                <p class="admin-section-intro">Local usernames are for committee members only. These logins stay on this device. Other members sign in with the email saved on their player record. Create that email in Firebase Authentication so it matches the player.</p>
                                 <div class="mb-6">
                                     <label for="adminMasterPassword" class="text-sm font-semibold mb-1 block">Master Password</label>
                                     <div class="flex flex-wrap gap-2 items-center">
@@ -3008,13 +3008,13 @@
         
         <!-- Version Number - Appears on all pages -->
         <div id="appVersionFooterWrap" class="text-center mt-4 pt-3 border-t border-poker-accent/20">
-            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.10.25.3</p>
+            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.10.25.4</p>
         </div>
     </div>
 
     <script>
         const PASC_APP_NAME = 'Poker Manager';
-        const PASC_APP_VERSION = '2026.10.25.3';
+        const PASC_APP_VERSION = '2026.10.25.4';
 
         // Poker Manager Firebase project. This is not the original poker-pasc project.
         const FIREBASE_CONFIG = {
@@ -3374,7 +3374,7 @@
             const cloudUser = getClubCloudUser();
             if (cloudUser?.email && kind !== 'local') {
                 kind = 'server';
-                name = cloudUser.email;
+                name = displayNameForClubEmail(cloudUser);
             }
             if (kind !== 'server') kind = 'local';
             if (!name) name = kind === 'server' ? 'Signed in' : 'Local user';
@@ -8812,9 +8812,19 @@
             btn.classList.remove('hidden');
         }
 
-        function roleForClubEmail(user) {
+        function playerForClubEmail(user) {
             const email = (user?.email || '').trim().toLowerCase();
-            const player = (adminPlayers || []).find((p) => (p.email || '').trim().toLowerCase() === email);
+            if (!email) return null;
+            return (adminPlayers || []).find((player) => (player.email || '').trim().toLowerCase() === email) || null;
+        }
+
+        function displayNameForClubEmail(user) {
+            const name = (playerForClubEmail(user)?.name || '').trim();
+            return name || (user?.email || '').trim();
+        }
+
+        function roleForClubEmail(user) {
+            const player = playerForClubEmail(user);
             if (!player) return 'committee';
             return player.committee === 'yes' ? 'committee' : 'member';
         }
@@ -9101,7 +9111,7 @@
             const user = getClubCloudUser();
             if (!user) return;
             setAppLoggedIn(true, roleForClubEmail(user));
-            setSessionIdentity(user.email || '', 'server');
+            setSessionIdentity(displayNameForClubEmail(user), 'server');
             showAppAfterLogin();
         }
 
@@ -11088,11 +11098,8 @@
                 passHash === p.loginPasswordHash
             );
 
-            if (player) {
-                return {
-                    ok: true,
-                    role: player.committee === 'yes' ? 'committee' : 'member'
-                };
+            if (player && player.committee === 'yes') {
+                return { ok: true, role: 'committee' };
             }
 
             return { ok: false };
@@ -11241,14 +11248,15 @@
             if (!container) return;
             container.innerHTML = '';
 
-            if (adminPlayers.length === 0) {
-                container.innerHTML = '<div class="text-gray-400">No members yet. Add players in Player Management.</div>';
-                return;
-            }
-
             const members = adminPlayers
                 .map((player, idx) => ({ player, idx }))
+                .filter(({ player }) => player.committee === 'yes')
                 .sort((a, b) => (a.player.name || '').localeCompare(b.player.name || ''));
+
+            if (members.length === 0) {
+                container.innerHTML = '<div class="text-gray-400">No committee members yet. Mark a player as committee in Player Management.</div>';
+                return;
+            }
 
             const table = document.createElement('table');
             table.className = 'min-w-full text-sm';
@@ -11271,7 +11279,7 @@
 
         function editAdminSecurityLogin(idx) {
             const player = adminPlayers[idx];
-            if (!player) return;
+            if (!player || player.committee !== 'yes') return;
             showAdminSettingsSection('security');
             const form = document.getElementById('adminSecurityForm');
             const editIdx = document.getElementById('adminSecurityEditIdx');
