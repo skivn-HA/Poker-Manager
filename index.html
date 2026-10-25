@@ -480,6 +480,62 @@
             margin-bottom: 0.5rem;
         }
 
+        .season-total-heading {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+        }
+
+        .season-total-info {
+            position: relative;
+            display: inline-flex;
+        }
+
+        .season-total-info-btn {
+            color: rgba(245, 245, 245, 0.7);
+            font-size: 0.85rem;
+            line-height: 1;
+            padding: 0.1rem 0.15rem;
+        }
+
+        .season-total-info-btn:hover,
+        .season-total-info-btn:focus {
+            color: #facc15;
+        }
+
+        .season-total-info-box {
+            display: none;
+            position: absolute;
+            left: 50%;
+            bottom: calc(100% + 0.45rem);
+            transform: translateX(-50%);
+            width: max-content;
+            max-width: 18rem;
+            padding: 0.55rem 0.7rem;
+            border-radius: 0.5rem;
+            background: #18181b;
+            border: 1px solid rgba(250, 204, 21, 0.45);
+            color: #f5f5f5;
+            font-size: 0.75rem;
+            font-weight: 500;
+            line-height: 1.35;
+            text-align: left;
+            white-space: normal;
+            z-index: 20;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+        }
+
+        .season-total-info:hover .season-total-info-box,
+        .season-total-info:focus-within .season-total-info-box,
+        .season-total-info.is-open .season-total-info-box {
+            display: block;
+        }
+
+        .club-mail-link-hidden {
+            -webkit-text-security: disc;
+        }
+
         #admin #adminGhostCashForm {
             gap: 0.5rem !important;
         }
@@ -2648,7 +2704,12 @@
                                         <button type="button" onclick="toggleEmailStatsOnSave()" id="toggleEmailStatsOnSaveBtn" class="pasc-switch self-start mt-1" role="switch" aria-checked="true" aria-label="Email stats when a game is saved"></button>
                                         <p class="text-xs text-poker-text/70 mt-1">Sends from the club Gmail when you are signed in with a club email. A username login still only saves on this device.</p>
                                         <label for="adminStatsEmailWebAppUrl" class="text-sm font-semibold mt-2">Club mail link</label>
-                                        <input type="url" id="adminStatsEmailWebAppUrl" placeholder="Paste the Google script web app link" class="px-3 py-2 rounded-lg bg-poker-primary border border-poker-accent text-poker-text" style="width:100%; max-width:36rem;">
+                                        <div class="flex items-center gap-2 mt-1" style="width:100%; max-width:36rem;">
+                                            <input type="text" id="adminStatsEmailWebAppUrl" placeholder="Paste the Google script web app link" autocomplete="off" spellcheck="false" class="club-mail-link-hidden px-3 py-2 rounded-lg bg-poker-primary border border-poker-accent text-poker-text" style="flex:1; min-width:0;">
+                                            <button type="button" id="toggleStatsEmailWebAppUrlBtn" onclick="toggleClubMailLinkVisibility()" class="text-poker-text/70 hover:text-white px-2 py-2" aria-label="Show club mail link" title="Show club mail link">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                     <button type="submit" class="self-start mt-1 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg font-medium text-white">Save Settings</button>
                                 </form>
@@ -2947,13 +3008,13 @@
         
         <!-- Version Number - Appears on all pages -->
         <div id="appVersionFooterWrap" class="text-center mt-4 pt-3 border-t border-poker-accent/20">
-            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.10.25.2</p>
+            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.10.25.3</p>
         </div>
     </div>
 
     <script>
         const PASC_APP_NAME = 'Poker Manager';
-        const PASC_APP_VERSION = '2026.10.25.2';
+        const PASC_APP_VERSION = '2026.10.25.3';
 
         // Poker Manager Firebase project. This is not the original poker-pasc project.
         const FIREBASE_CONFIG = {
@@ -6985,6 +7046,25 @@
             updateEmailStatsOnSaveToggleButton();
         }
 
+        function toggleClubMailLinkVisibility() {
+            const input = document.getElementById('adminStatsEmailWebAppUrl');
+            const button = document.getElementById('toggleStatsEmailWebAppUrlBtn');
+            if (!input || !button) return;
+            const show = input.classList.contains('club-mail-link-hidden');
+            input.classList.toggle('club-mail-link-hidden', !show);
+            button.innerHTML = `<i class="fas ${show ? 'fa-eye-slash' : 'fa-eye'}"></i>`;
+            const label = show ? 'Hide club mail link' : 'Show club mail link';
+            button.setAttribute('aria-label', label);
+            button.title = label;
+        }
+
+        function toggleSeasonTotalInfo(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            const wrap = event.currentTarget.closest('.season-total-info');
+            if (wrap) wrap.classList.toggle('is-open');
+        }
+
         function buildStatsEmailText(report) {
             return report.bodyLines.concat([
                 '',
@@ -8069,7 +8149,7 @@
                 { label: 'Season', value: stats.season, isMoney: false },
                 { label: 'Total Buy-in Cash', value: stats.totalBuyInCash, isMoney: true },
                 { label: 'Total Player Cash Payout', value: stats.totalPlayerCashPayout, isMoney: true },
-                { label: 'Total Club Cash', value: stats.totalPascCash, isMoney: true },
+                { label: 'Total Club Game Cash', value: stats.totalPascCash, isMoney: true },
                 { label: 'Total Raffle Cash (net)', value: stats.totalRaffleCash, isMoney: true }
             ];
 
@@ -8100,7 +8180,15 @@
                     </div>
                 </div>
                 <div class="mt-4 bg-poker-primary/50 rounded-xl px-4 py-6 border border-poker-accent/20 text-center">
-                    <h4 class="text-xl font-semibold text-yellow-400 mb-3">Total Club Cash</h4>
+                    <h4 class="season-total-heading text-xl font-semibold text-yellow-400 mb-3">
+                        Total Club Cash
+                        <span class="season-total-info">
+                            <button type="button" class="season-total-info-btn" onclick="toggleSeasonTotalInfo(event)" aria-label="How Total Club Cash is calculated">
+                                <i class="fas fa-info-circle"></i>
+                            </button>
+                            <span class="season-total-info-box" role="tooltip">The sum of Total Club Game Cash + the current bonus pools - Club Expenses</span>
+                        </span>
+                    </h4>
                     <div class="text-4xl md:text-5xl font-bold text-green-400">${formatAdminGameMoney(seasonFinalTotal)}</div>
                 </div>
             `;

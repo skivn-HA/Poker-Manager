@@ -1,4 +1,4 @@
-const CACHE_NAME = 'poker-manager-v10';
+const CACHE_NAME = 'poker-manager-v11';
 
 const PRECACHE_ASSETS = [
   './index.html',
