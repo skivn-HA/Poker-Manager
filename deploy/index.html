@@ -1743,6 +1743,19 @@
         .gv-stat-value { font-size: 1.15rem; font-weight: 700; color: #facc15; }
         .gv-stat-value.green { color: #4ade80; }
         .gv-stat-status { font-size: 0.8rem; font-weight: 600; margin-top: 0.15rem; }
+        .gv-date-card { min-width: 11rem; }
+        .gv-date-input {
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            border: none;
+            background: transparent;
+            color: #facc15;
+            font-size: 1rem;
+            font-weight: 700;
+            color-scheme: dark;
+        }
+        .gv-date-input:focus { outline: none; }
         /* Rows are spaced with a grid gap on the list container instead of per-row
            margins so Firefox renders uniform gaps at fractional zoom/display scaling. */
         .gv-result-list {
@@ -2025,7 +2038,7 @@
                     <li><strong>Bonuses:</strong> Ghost Player, Bonus Hand, Bad Beat, and Birthday — optional season features and pool amounts.</li>
                     <li><strong>Player Management:</strong> Player records (name, email, phone, date of birth, years, membership, committee). These names fill the registration list.</li>
                     <li><strong>Security / Login:</strong> Master Password for the admin username, plus a local username and password for each committee member. Other members sign in with the email on their player record. Create that email in Firebase Authentication.</li>
-                    <li><strong>Game Management:</strong> List and delete saved games. Deleting a game also removes it from the Points Table.</li>
+                    <li><strong>Game Management:</strong> List and delete saved games. The eye opens a game, and the date in the top-left box can be changed. Deleting a game also removes it from the Points Table.</li>
                     <li><strong>Season Statistics:</strong> Season totals and club expenses.</li>
                     <li><strong>Backup / Restore:</strong> Publish from this device, load the latest server file, or export, email, and import a file backup.</li>
                     <li><strong>Reset App:</strong> Clear season data, or factory-reset players, settings, and history. An email sign-in also updates the shared season.</li>
@@ -3114,13 +3127,13 @@
         
         <!-- Version Number - Appears on all pages -->
         <div id="appVersionFooterWrap" class="text-center mt-4 pt-3 border-t border-poker-accent/20">
-            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.10.30.7</p>
+            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.10.30.8</p>
         </div>
     </div>
 
     <script>
         const PASC_APP_NAME = 'Poker Manager';
-        const PASC_APP_VERSION = '2026.10.30.7';
+        const PASC_APP_VERSION = '2026.10.30.8';
 
         // Poker Manager Firebase project. This is not the original poker-pasc project.
         const FIREBASE_CONFIG = {
@@ -8304,6 +8317,37 @@
             renderPointsTablePage();
         }
 
+        function savedGameDateToInputValue(dateText) {
+            const text = String(dateText || '').trim();
+            if (!text || text === '-') return '';
+            const direct = /^(\d{4})-(\d{2})-(\d{2})/.exec(text);
+            if (direct) return `${direct[1]}-${direct[2]}-${direct[3]}`;
+            const parsed = new Date(text);
+            if (Number.isNaN(parsed.getTime())) return '';
+            const month = String(parsed.getMonth() + 1).padStart(2, '0');
+            const day = String(parsed.getDate()).padStart(2, '0');
+            return `${parsed.getFullYear()}-${month}-${day}`;
+        }
+
+        function formatSavedGameDate(isoDate) {
+            const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(isoDate || ''));
+            if (!match) return '';
+            const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+            if (Number.isNaN(date.getTime())) return '';
+            return date.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+        }
+
+        function updateSavedGameDate(gameId, isoDate) {
+            const game = pointsTableHistory.find((g) => String(g.id) === String(gameId));
+            if (!game) return;
+            const formatted = formatSavedGameDate(isoDate);
+            if (!formatted || formatted === game.date) return;
+            game.date = formatted;
+            persistPointsTableHistory();
+            renderAdminGameManagement();
+            renderPointsTablePage();
+        }
+
         function openGameView(gameId) {
             const game = pointsTableHistory.find((g) => String(g.id) === String(gameId));
             if (!game) return;
@@ -8329,7 +8373,7 @@
             const raffleNet = g.raffleCashNet != null ? g.raffleCashNet : g.raffleCashSummary;
             let statsCards = `
                 <div class="gv-stat-grid">
-                    <div class="gv-stat-card"><div class="gv-stat-label">Date</div><div class="gv-stat-value">${fd(g.date)}</div></div>
+                    <div class="gv-stat-card gv-date-card"><div class="gv-stat-label">Date</div><input type="date" class="gv-date-input" aria-label="Game date" data-game-id="${escapeHtml(g.id)}" value="${savedGameDateToInputValue(g.date)}" onchange="updateSavedGameDate(this.dataset.gameId, this.value)"></div>
                     <div class="gv-stat-card"><div class="gv-stat-label">Game Type</div><div class="gv-stat-value">${fd(g.gameType)}</div></div>
                     <div class="gv-stat-card"><div class="gv-stat-label">Game Count</div><div class="gv-stat-value">${fd(g.gameCount)}</div></div>
                     <div class="gv-stat-card"><div class="gv-stat-label">Total Players</div><div class="gv-stat-value">${fd(g.totalPlayers)}</div></div>
