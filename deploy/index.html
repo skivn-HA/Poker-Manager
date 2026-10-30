@@ -959,8 +959,7 @@
         body.points-table-display-mode #appMainNav,
         body.points-table-display-mode #sessionBar,
         body.fullscreen-mode #sessionBar,
-        body.points-table-display-mode #openPointsTableWindowBtn,
-        body.points-table-display-mode #points-table .points-email-btn {
+        body.points-table-display-mode #openPointsTableWindowBtn {
             display: none !important;
         }
 
@@ -1021,26 +1020,6 @@
             border: none;
             padding: 0;
             font-size: 0.875rem;
-        }
-
-        #points-table .points-email-btn {
-            color: #facc15;
-            cursor: pointer;
-            background: none;
-            border: none;
-            padding: 0;
-            font-size: 0.875rem;
-            font-weight: 600;
-            line-height: 1;
-        }
-
-        #points-table .points-email-btn:hover:not(:disabled) {
-            color: #fde047;
-        }
-
-        #points-table .points-email-btn:disabled {
-            opacity: 0.35;
-            cursor: not-allowed;
         }
 
         #remote-control .remote-code-display {
@@ -1863,7 +1842,7 @@
                     <li><strong>Game Dashboard:</strong> Live cash breakdown, prize pools, ghost/bonus/bad beat tracking, points for the current game, save/email/print.</li>
                     <li><strong>Blind Timer:</strong> Levels, countdown, fullscreen timer, voice announcements, cash prize display.</li>
                     <li><strong>Numbers:</strong> Random number picker for draws or side games. Hidden until enabled in Settings → General.</li>
-                    <li><strong>Points Table:</strong> Season standings from saved games, qualification for season final, player emails.</li>
+                    <li><strong>Points Table:</strong> Season standings from saved games, and qualification for the season final.</li>
                     <li><strong>Remote:</strong> Host or join live remote control (if enabled in General settings).</li>
                     <li><strong>Settings:</strong> All club configuration (committee access required).</li>
                 </ul>
@@ -3003,13 +2982,13 @@
         
         <!-- Version Number - Appears on all pages -->
         <div id="appVersionFooterWrap" class="text-center mt-4 pt-3 border-t border-poker-accent/20">
-            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.10.30.1</p>
+            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.10.30.2</p>
         </div>
     </div>
 
     <script>
         const PASC_APP_NAME = 'Poker Manager';
-        const PASC_APP_VERSION = '2026.10.30.1';
+        const PASC_APP_VERSION = '2026.10.30.2';
 
         // Poker Manager Firebase project. This is not the original poker-pasc project.
         const FIREBASE_CONFIG = {
@@ -7815,7 +7794,6 @@
                         <th>Total Cash Won</th>
                         <th>Qualified</th>
                         <th>History</th>
-                        <th>Email</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -7830,10 +7808,6 @@
                     : qualification === 'No'
                         ? 'text-red-400 font-semibold'
                         : '';
-                const playerEmail = getAdminPlayerEmailByName(player.name);
-                const emailTitle = playerEmail
-                    ? `Email ${player.name} their points table summary and game history`
-                    : `No email address on file for ${player.name}`;
                 const mainRow = document.createElement('tr');
                 mainRow.className = 'points-player-row';
                 mainRow.innerHTML = `
@@ -7845,7 +7819,6 @@
                     <td>${formatPointsTableMoney(player.totalCashWon)}</td>
                     <td class="${qualificationClass}">${qualification}</td>
                     <td><button type="button" class="points-toggle-btn" data-history-target="${historyId}" onclick="togglePointsPlayerHistory('${historyId}')">Games</button></td>
-                    <td><button type="button" class="points-email-btn" onclick="emailPointsTablePlayer(${index})" ${playerEmail ? '' : 'disabled'} title="${emailTitle}">@</button></td>
                 `;
                 tbody.appendChild(mainRow);
 
@@ -7860,7 +7833,7 @@
                     })
                     .join('');
                 historyRow.innerHTML = `
-                    <td colspan="9">
+                    <td colspan="8">
                         <ul class="points-history-list">${historyItems}</ul>
                     </td>
                 `;
@@ -7868,74 +7841,6 @@
             });
 
             container.appendChild(table);
-        }
-
-        function getAdminPlayerEmailByName(name) {
-            const record = getAdminRecordForPlayer(name);
-            const email = (record?.email || '').trim();
-            return email.includes('@') ? email : '';
-        }
-
-        function getSortedPointsTablePlayerGames(games) {
-            return [...games].sort((a, b) => String(b.date).localeCompare(String(a.date)) || (b.gameId || 0) - (a.gameId || 0));
-        }
-
-        function formatPointsTablePlayerGameLine(game) {
-            const cashText = game.cashWon > 0 ? ` — ${formatPointsTableMoney(game.cashWon)}` : '';
-            return `${game.date} — ${game.gameType} — ${formatResultPlaceLabel(game.place)} — ${game.points} pts${cashText}`;
-        }
-
-        function buildPointsTablePlayerSummaryLines(player, rank) {
-            const games = player.games.length;
-            const qualified = getSeasonFinalQualificationLabel(games);
-            const ratio = formatPointsTableGameRatio(player.totalPoints, games);
-            const cash = formatPointsTableMoney(player.totalCashWon);
-            return [
-                rank != null ? `${rank}. ${player.name}` : player.name,
-                `   Games: ${games}  |  Points: ${player.totalPoints}  |  Ratio: ${ratio}  |  Cash Won: ${cash}  |  Qualified: ${qualified}`
-            ];
-        }
-
-        function buildPointsTablePlayerEmailLines(player, rank) {
-            const lines = buildPointsTablePlayerSummaryLines(player, rank);
-            const gameLines = getSortedPointsTablePlayerGames(player.games).map((game) => `   ${formatPointsTablePlayerGameLine(game)}`);
-            if (gameLines.length > 0) {
-                lines.push('', 'Game History:');
-                lines.push(...gameLines);
-            }
-            return lines;
-        }
-
-        function buildPointsTablePlayerEmailContent(playerIndex) {
-            const aggregates = getPointsTableAggregates();
-            const player = aggregates[playerIndex];
-            if (!player) return null;
-
-            const clubName = getClubName();
-            const season = getSeasonNumber();
-            const heading = `${clubName} Points Table — Season ${season} — ${player.name}`;
-            const bodyLines = [
-                heading,
-                '',
-                ...buildPointsTablePlayerEmailLines(player, playerIndex + 1)
-            ];
-            return { heading, bodyLines, recipientEmail: getAdminPlayerEmailByName(player.name) };
-        }
-
-        function emailPointsTablePlayer(playerIndex) {
-            const report = buildPointsTablePlayerEmailContent(playerIndex);
-            if (!report) {
-                showToast('Could not build email for this player.', 'error');
-                return;
-            }
-            if (!report.recipientEmail) {
-                showToast('No email address on file for this player in Settings > Player Management.', 'error');
-                return;
-            }
-
-            const subject = encodeURIComponent(report.heading);
-            const body = encodeURIComponent(report.bodyLines.join('\n'));
-            window.location.href = `mailto:${report.recipientEmail}?subject=${subject}&body=${body}`;
         }
 
         function formatAdminGameMoney(amount) {
