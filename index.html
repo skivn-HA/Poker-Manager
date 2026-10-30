@@ -1108,6 +1108,11 @@
             text-align: center;
         }
 
+        #points-table table th.points-player-name,
+        #points-table table td.points-player-name {
+            text-align: left;
+        }
+
         #points-table table tbody tr.points-player-row {
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
@@ -3134,13 +3139,13 @@
         
         <!-- Version Number - Appears on all pages -->
         <div id="appVersionFooterWrap" class="text-center mt-4 pt-3 border-t border-poker-accent/20">
-            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.10.30.12</p>
+            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.10.30.13</p>
         </div>
     </div>
 
     <script>
         const PASC_APP_NAME = 'Poker Manager';
-        const PASC_APP_VERSION = '2026.10.30.12';
+        const PASC_APP_VERSION = '2026.10.30.13';
 
         // Poker Manager Firebase project. This is not the original poker-pasc project.
         const FIREBASE_CONFIG = {
@@ -8004,7 +8009,7 @@
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>Player</th>
+                        <th class="points-player-name">Player</th>
                         <th>Games</th>
                         <th>Total Points</th>
                         <th>Game Ratio</th>
@@ -8029,7 +8034,7 @@
                 mainRow.className = 'points-player-row';
                 mainRow.innerHTML = `
                     <td>${index + 1}</td>
-                    <td>${player.name}</td>
+                    <td class="points-player-name">${player.name}</td>
                     <td>${player.games.length}</td>
                     <td>${player.totalPoints}</td>
                     <td>${formatPointsTableGameRatio(player.totalPoints, player.games.length)}</td>
