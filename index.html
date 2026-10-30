@@ -655,6 +655,11 @@
             display: block;
         }
 
+        #adminSection-bonuses .season-total-info-box {
+            left: 0;
+            transform: none;
+        }
+
         .club-mail-link-hidden {
             -webkit-text-security: disc;
         }
@@ -2019,7 +2024,7 @@
                     <li>Top 3 places use the payout percentages (3rd is calculated automatically).</li>
                     <li><strong>Raffle Cash</strong> (if enabled) is entered on Registration and Game Dashboard and feeds club cash / optional bonus pools.</li>
                     <li><strong>Ghost Player</strong>, <strong>Bonus Hand</strong>, and <strong>Bad Beat Bonus</strong> each have enable/disable settings and season pools.</li>
-                    <li><strong>Save Game</strong> locks the night into Points Table / Game Management history. Declaring a winner does not do this by itself.</li>
+                    <li><strong>Save Game</strong> locks the night into Points Table / Game Management history, then clears the current game so the next one can be set up. Game details stay. Declaring a winner does not save by itself.</li>
                     <li>When signed in with a club email and committee access, that save uploads the whole shared season about a second later. A username login keeps the night on this device only.</li>
                 </ul>
 
@@ -2938,8 +2943,15 @@
                                 <p class="admin-section-intro">Optional season bonus features. Enable each one with the switch, then set amounts and manage pools.</p>
 
                                 <div class="mb-8">
-                                    <h4 class="text-lg font-semibold text-yellow-400 mb-1">Ghost Player</h4>
-                                    <p class="admin-section-intro">Amount taken from each game before the percentage split. Builds up each game until the ghost player wins, then resets.</p>
+                                    <h4 class="text-lg font-semibold text-yellow-400 mb-1 season-total-heading">
+                                        Ghost Player
+                                        <span class="season-total-info">
+                                            <button type="button" class="season-total-info-btn" onclick="toggleSeasonTotalInfo(event)" aria-label="About Ghost Player">
+                                                <i class="fas fa-info-circle"></i>
+                                            </button>
+                                            <span class="season-total-info-box" role="tooltip">Amount taken from each game before the percentage split. Builds up each game until the ghost player wins, then resets.</span>
+                                        </span>
+                                    </h4>
                                     <div class="flex flex-wrap items-center gap-3 mb-3">
                                         <button type="button" onclick="toggleGhostPlayerCashEnabled()" id="toggleGhostPlayerCashBtn" class="pasc-switch" role="switch" aria-checked="false" aria-label="Ghost Player"></button>
                                     </div>
@@ -2959,8 +2971,15 @@
                                 </div>
 
                                 <div class="mb-8 pt-4 border-t border-white/10">
-                                    <h4 class="text-lg font-semibold text-yellow-400 mb-1">Bonus Hand</h4>
-                                    <p class="admin-section-intro">Season bonus hand (e.g. Straight Flush 6–10). Each game, the set amount is taken from raffle cash and added to the pool until won.</p>
+                                    <h4 class="text-lg font-semibold text-yellow-400 mb-1 season-total-heading">
+                                        Bonus Hand
+                                        <span class="season-total-info">
+                                            <button type="button" class="season-total-info-btn" onclick="toggleSeasonTotalInfo(event)" aria-label="About Bonus Hand">
+                                                <i class="fas fa-info-circle"></i>
+                                            </button>
+                                            <span class="season-total-info-box" role="tooltip">Season bonus hand (e.g. Straight Flush 6–10). Each game, the set amount is taken from raffle cash and added to the pool until won.</span>
+                                        </span>
+                                    </h4>
                                     <div class="flex flex-wrap items-center gap-3 mb-3">
                                         <button type="button" onclick="toggleBonusHandEnabled()" id="toggleBonusHandBtn" class="pasc-switch" role="switch" aria-checked="false" aria-label="Bonus Hand"></button>
                                     </div>
@@ -2986,8 +3005,15 @@
                                 </div>
 
                                 <div class="mb-8 pt-4 border-t border-white/10">
-                                    <h4 class="text-lg font-semibold text-yellow-400 mb-1">Bad Beat Bonus</h4>
-                                    <p class="admin-section-intro">When a player holding quads loses to a higher hand, they win the bad beat bonus. Each game, the set amount is taken from raffle cash and added to the pool until won.</p>
+                                    <h4 class="text-lg font-semibold text-yellow-400 mb-1 season-total-heading">
+                                        Bad Beat Bonus
+                                        <span class="season-total-info">
+                                            <button type="button" class="season-total-info-btn" onclick="toggleSeasonTotalInfo(event)" aria-label="About Bad Beat Bonus">
+                                                <i class="fas fa-info-circle"></i>
+                                            </button>
+                                            <span class="season-total-info-box" role="tooltip">When a player holding quads loses to a higher hand, they win the bad beat bonus. Each game, the set amount is taken from raffle cash and added to the pool until won.</span>
+                                        </span>
+                                    </h4>
                                     <div class="flex flex-wrap items-center gap-3 mb-3">
                                         <button type="button" onclick="toggleBadBeatBonusEnabled()" id="toggleBadBeatBonusBtn" class="pasc-switch" role="switch" aria-checked="false" aria-label="Bad Beat Bonus"></button>
                                     </div>
@@ -3007,8 +3033,15 @@
                                 </div>
 
                                 <div class="pt-4 border-t border-white/10">
-                                    <h4 class="text-lg font-semibold text-yellow-400 mb-1">Birthday Bonus</h4>
-                                    <p class="admin-section-intro">Track players with birthdays this month and mark when their birthday bonus has been paid. Paid status resets each year when their birthday month comes around again. When disabled, birthday icons and bonus tracking are hidden throughout the app.</p>
+                                    <h4 class="text-lg font-semibold text-yellow-400 mb-1 season-total-heading">
+                                        Birthday Bonus
+                                        <span class="season-total-info">
+                                            <button type="button" class="season-total-info-btn" onclick="toggleSeasonTotalInfo(event)" aria-label="About Birthday Bonus">
+                                                <i class="fas fa-info-circle"></i>
+                                            </button>
+                                            <span class="season-total-info-box" role="tooltip">Track players with birthdays this month and mark when their birthday bonus has been paid. Paid status resets each year when their birthday month comes around again. When disabled, birthday icons and bonus tracking are hidden throughout the app.</span>
+                                        </span>
+                                    </h4>
                                     <div class="flex flex-wrap items-center gap-3">
                                         <button type="button" onclick="toggleBirthdayBonusEnabled()" id="toggleBirthdayBonusBtn" class="pasc-switch" role="switch" aria-checked="false" aria-label="Birthday Bonus"></button>
                                     </div>
@@ -3139,13 +3172,13 @@
         
         <!-- Version Number - Appears on all pages -->
         <div id="appVersionFooterWrap" class="text-center mt-4 pt-3 border-t border-poker-accent/20">
-            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.10.30.13</p>
+            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.10.30.14</p>
         </div>
     </div>
 
     <script>
         const PASC_APP_NAME = 'Poker Manager';
-        const PASC_APP_VERSION = '2026.10.30.13';
+        const PASC_APP_VERSION = '2026.10.30.14';
 
         // Poker Manager Firebase project. This is not the original poker-pasc project.
         const FIREBASE_CONFIG = {
@@ -5494,48 +5527,56 @@
             updateTablesNavVisibility();
         }
         
+        function resetCurrentTournament() {
+            players = [];
+            tables = [];
+            eliminatedPlayers = [];
+            declaredWinner = null;
+            gameStarted = false;
+            eliminatedPlayersListVisible = false;
+            currentGameSaved = false;
+            currentSavedGameId = null;
+            originalPlayers = [];
+            ghostEligible = false;
+            window.selectedGhostPlayer = null;
+            const playersList = document.getElementById('playersList');
+            if (playersList) playersList.innerHTML = '';
+            const tablesList = document.getElementById('tablesList');
+            if (tablesList) tablesList.innerHTML = '';
+            updateRegistrationTablesLayout();
+            renderEliminatedPlayersList();
+            updateStartGameButton();
+            resetBlindTimerToFirstLevel();
+            exitBlindTimerFullscreenIfNeeded();
+            resetRaffleCashInputs();
+            resetGameVouchersInputs();
+            const bonusHandWonCheckbox = document.getElementById('bonusHandWonCheckbox');
+            if (bonusHandWonCheckbox) {
+                bonusHandWonCheckbox.checked = false;
+                bonusHandWonCheckbox.disabled = false;
+            }
+            const bonusHandWinnerName = document.getElementById('bonusHandWinnerName');
+            if (bonusHandWinnerName) {
+                bonusHandWinnerName.value = '';
+                bonusHandWinnerName.disabled = false;
+            }
+            const badBeatBonusWonCheckbox = document.getElementById('badBeatBonusWonCheckbox');
+            if (badBeatBonusWonCheckbox) {
+                badBeatBonusWonCheckbox.checked = false;
+                badBeatBonusWonCheckbox.disabled = false;
+            }
+            const badBeatBonusWinnerName = document.getElementById('badBeatBonusWinnerName');
+            if (badBeatBonusWinnerName) {
+                badBeatBonusWinnerName.value = '';
+                badBeatBonusWinnerName.disabled = false;
+            }
+            updateStats();
+            updateSaveGameButton();
+        }
+
         async function clearPlayers() {
             if (await showConfirm('Are you sure you want to clear all players?', { danger: true })) {
-                players = [];
-                tables = [];
-                eliminatedPlayers = [];
-                declaredWinner = null;
-                gameStarted = false;
-                eliminatedPlayersListVisible = false;
-                currentGameSaved = false;
-                currentSavedGameId = null;
-                originalPlayers = [];
-                ghostEligible = false;
-                window.selectedGhostPlayer = null;
-                document.getElementById('playersList').innerHTML = '';
-                document.getElementById('tablesList').innerHTML = '';
-                updateRegistrationTablesLayout();
-                renderEliminatedPlayersList();
-                updateStartGameButton();
-                resetBlindTimerToFirstLevel();
-                resetRaffleCashInputs();
-                resetGameVouchersInputs();
-                const bonusHandWonCheckbox = document.getElementById('bonusHandWonCheckbox');
-                if (bonusHandWonCheckbox) {
-                    bonusHandWonCheckbox.checked = false;
-                    bonusHandWonCheckbox.disabled = false;
-                }
-                const bonusHandWinnerName = document.getElementById('bonusHandWinnerName');
-                if (bonusHandWinnerName) {
-                    bonusHandWinnerName.value = '';
-                    bonusHandWinnerName.disabled = false;
-                }
-                const badBeatBonusWonCheckbox = document.getElementById('badBeatBonusWonCheckbox');
-                if (badBeatBonusWonCheckbox) {
-                    badBeatBonusWonCheckbox.checked = false;
-                    badBeatBonusWonCheckbox.disabled = false;
-                }
-                const badBeatBonusWinnerName = document.getElementById('badBeatBonusWinnerName');
-                if (badBeatBonusWinnerName) {
-                    badBeatBonusWinnerName.value = '';
-                    badBeatBonusWinnerName.disabled = false;
-                }
-                updateStats();
+                resetCurrentTournament();
             }
         }
         
@@ -7913,6 +7954,11 @@
             updateStats();
             updateSaveGameButton();
             const mailResult = await sendStatsEmailAfterSave(buildStatsReportContent());
+            if (liveSyncRole === 'host' && liveGameCode) {
+                await stopLiveGameHost();
+            }
+            resetCurrentTournament();
+            showPage('registration');
             showToast(mailResult.message, mailResult.type);
         }
 
