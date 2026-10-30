@@ -536,6 +536,10 @@
             min-width: 0;
         }
 
+        #admin #adminPlayerForm .admin-player-field.hidden {
+            display: none;
+        }
+
         #admin #adminPlayerForm .admin-player-field label {
             flex: 0 0 8.75rem;
             font-size: 0.875rem;
@@ -2748,12 +2752,12 @@
                                         </select>
                                     </div>
                                     <div class="admin-player-field hidden" id="adminPlayerUsernameField">
-                                        <label for="adminPlayerUsername">Username</label>
-                                        <input type="text" id="adminPlayerUsername" placeholder="Local login username" autocomplete="off" class="px-3 py-2 rounded-lg bg-poker-primary border border-poker-accent text-poker-text">
+                                        <label for="adminPlayerUsername">Local Username</label>
+                                        <input type="text" id="adminPlayerUsername" placeholder="Local username" autocomplete="off" class="px-3 py-2 rounded-lg bg-poker-primary border border-poker-accent text-poker-text">
                                     </div>
                                     <div class="admin-player-field hidden" id="adminPlayerPasswordField">
-                                        <label for="adminPlayerPassword">Password</label>
-                                        <input type="password" id="adminPlayerPassword" placeholder="Local login password" autocomplete="new-password" class="px-3 py-2 rounded-lg bg-poker-primary border border-poker-accent text-poker-text">
+                                        <label for="adminPlayerPassword">Local Password</label>
+                                        <input type="password" id="adminPlayerPassword" placeholder="Local password" autocomplete="new-password" class="px-3 py-2 rounded-lg bg-poker-primary border border-poker-accent text-poker-text">
                                     </div>
                                     <button type="submit" class="col-span-1 md:col-span-2 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg font-medium text-white">Add/Update Player</button>
                                 </form>
@@ -3131,13 +3135,13 @@
         
         <!-- Version Number - Appears on all pages -->
         <div id="appVersionFooterWrap" class="text-center mt-4 pt-3 border-t border-poker-accent/20">
-            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.10.30.15</p>
+            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.10.30.16</p>
         </div>
     </div>
 
     <script>
         const PASC_APP_NAME = 'Poker Manager';
-        const PASC_APP_VERSION = '2026.10.30.15';
+        const PASC_APP_VERSION = '2026.10.30.16';
 
         // Poker Manager Firebase project. This is not the original poker-pasc project.
         const FIREBASE_CONFIG = {
@@ -11275,7 +11279,7 @@
             if (usernameInput) usernameInput.value = '';
             if (passwordInput) {
                 passwordInput.value = '';
-                passwordInput.placeholder = 'Local login password';
+                passwordInput.placeholder = 'Local password';
             }
             updateAdminPlayerLoginFields();
         }
@@ -11674,7 +11678,7 @@
             if (usernameInput) usernameInput.value = p.loginUsername || '';
             if (passwordInput) {
                 passwordInput.value = '';
-                passwordInput.placeholder = p.loginPasswordHash ? 'Leave blank to keep current password' : 'Local login password';
+                passwordInput.placeholder = p.loginPasswordHash ? 'Leave blank to keep current password' : 'Local password';
             }
             updateAdminPlayerLoginFields();
             document.getElementById('adminPlayerForm').setAttribute('data-edit-idx', idx);
