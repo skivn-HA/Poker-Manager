@@ -919,24 +919,6 @@
             color: #f9fafb;
         }
 
-        #admin #adminSecurityList table th,
-        #admin #adminSecurityList table td {
-            text-align: left;
-        }
-
-        #admin #adminSecurityList table {
-            border-collapse: collapse;
-            line-height: 1.4;
-        }
-
-        #admin #adminSecurityList table tbody tr {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        #admin #adminSecurityList table tbody tr:last-child {
-            border-bottom: none;
-        }
-
         #admin #adminLogoutBtn {
             margin-top: 0.25rem;
         }
@@ -2053,8 +2035,7 @@
                     <li><strong>Blind Timer:</strong> Voice, blind levels, set all times, breaks, and whether the next blind level is shown.</li>
                     <li><strong>Club Cash &amp; Payout:</strong> Club vs player cash split and 1st/2nd place payout %. 3rd place is calculated from the remainder.</li>
                     <li><strong>Bonuses:</strong> Ghost Player, Bonus Hand, Bad Beat, and Birthday — optional season features and pool amounts.</li>
-                    <li><strong>Player Management:</strong> Player records (name, email, phone, date of birth, years, membership, committee). These names fill the registration list.</li>
-                    <li><strong>Security / Login:</strong> Master Password for the admin username, plus a local username and password for each committee member. Other members sign in with the email on their player record. Create that email in Firebase Authentication.</li>
+                    <li><strong>Player Management:</strong> Player records (name, email, phone, date of birth, years, membership, committee). These names fill the registration list. Committee members also get a local username and password. Other members sign in with the email on their player record. Create that email in Firebase Authentication.</li>
                     <li><strong>Game Management:</strong> List and delete saved games. The eye opens a game, and the date in the top-left box can be changed. Deleting a game also removes it from the Points Table.</li>
                     <li><strong>Season Statistics:</strong> Season totals and club expenses.</li>
                     <li><strong>Backup / Restore:</strong> Publish from this device, load the latest server file, or export, email, and import a file backup.</li>
@@ -2718,7 +2699,6 @@
                             <button type="button" class="admin-settings-nav-btn" data-admin-section="pasc-cash" onclick="showAdminSettingsSection('pasc-cash')">Club Cash &amp; Payout</button>
                             <button type="button" class="admin-settings-nav-btn" data-admin-section="bonuses" onclick="showAdminSettingsSection('bonuses')">Bonuses</button>
                             <button type="button" class="admin-settings-nav-btn" data-admin-section="player-management" onclick="showAdminSettingsSection('player-management')">Player Management</button>
-                            <button type="button" class="admin-settings-nav-btn" data-admin-section="security" onclick="showAdminSettingsSection('security')">Security / Login</button>
                             <button type="button" class="admin-settings-nav-btn" data-admin-section="game-management" onclick="showAdminSettingsSection('game-management')">Game Management</button>
                             <button type="button" class="admin-settings-nav-btn" data-admin-section="season-statistics" onclick="showAdminSettingsSection('season-statistics')">Season Statistics</button>
                             <button type="button" class="admin-settings-nav-btn active" data-admin-section="backup-restore" onclick="showAdminSettingsSection('backup-restore')">Backup / Restore</button>
@@ -2729,7 +2709,7 @@
                         <div id="adminSettingsBody">
                             <div id="adminSection-player-management" class="admin-settings-section hidden">
                                 <h3>Player Management</h3>
-                                <p class="admin-section-intro">Add and maintain player records used for registration, emails, birthdays, and committee membership.</p>
+                                <p class="admin-section-intro">Add and maintain player records used for registration, emails, birthdays, and committee membership. Set Committee to Yes to add that player's local username and password.</p>
                                 <form id="adminPlayerForm" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                     <div class="admin-player-field">
                                         <label for="adminPlayerName">Player Name</label>
@@ -2761,11 +2741,19 @@
                                     </div>
                                     <div class="admin-player-field">
                                         <label for="adminPlayerCommittee">Committee Member?</label>
-                                        <select id="adminPlayerCommittee" class="px-3 py-2 rounded-lg bg-poker-primary border border-poker-accent text-poker-text">
+                                        <select id="adminPlayerCommittee" onchange="updateAdminPlayerLoginFields()" class="px-3 py-2 rounded-lg bg-poker-primary border border-poker-accent text-poker-text">
                                             <option value="">Select…</option>
                                             <option value="yes">Yes</option>
                                             <option value="no">No</option>
                                         </select>
+                                    </div>
+                                    <div class="admin-player-field hidden" id="adminPlayerUsernameField">
+                                        <label for="adminPlayerUsername">Username</label>
+                                        <input type="text" id="adminPlayerUsername" placeholder="Local login username" autocomplete="off" class="px-3 py-2 rounded-lg bg-poker-primary border border-poker-accent text-poker-text">
+                                    </div>
+                                    <div class="admin-player-field hidden" id="adminPlayerPasswordField">
+                                        <label for="adminPlayerPassword">Password</label>
+                                        <input type="password" id="adminPlayerPassword" placeholder="Local login password" autocomplete="new-password" class="px-3 py-2 rounded-lg bg-poker-primary border border-poker-accent text-poker-text">
                                     </div>
                                     <button type="submit" class="col-span-1 md:col-span-2 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg font-medium text-white">Add/Update Player</button>
                                 </form>
@@ -2848,35 +2836,6 @@
                                         </div>
                                     </div>
                                     <button type="submit" class="self-start mt-1 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg font-medium text-white">Save Settings</button>
-                                </form>
-                            </div>
-                            <div id="adminSection-security" class="admin-settings-section hidden">
-                                <h3>Security / Login</h3>
-                                <p class="admin-section-intro">Local usernames are for committee members only. These logins stay on this device. Other members sign in with the email saved on their player record. Create that email in Firebase Authentication so it matches the player.</p>
-                                <div class="mb-6">
-                                    <label for="adminMasterPassword" class="text-sm font-semibold mb-1 block">Master Password</label>
-                                    <div class="flex flex-wrap gap-2 items-center">
-                                        <input type="password" id="adminMasterPassword" placeholder="Leave blank to keep current password" autocomplete="new-password" class="px-3 py-2 rounded-lg bg-poker-primary border border-poker-accent text-poker-text" style="min-width:220px; max-width:320px;">
-                                        <button type="button" onclick="saveMasterPassword()" class="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg font-medium text-white">Save Master Password</button>
-                                    </div>
-                                    <p class="text-xs text-poker-text/70 mt-1">Used with the admin username. Default is admin.</p>
-                                </div>
-                                <div id="adminSecurityList" class="overflow-x-auto mb-4"></div>
-                                <form id="adminSecurityForm" class="grid grid-cols-1 md:grid-cols-2 gap-4 hidden">
-                                    <input type="hidden" id="adminSecurityEditIdx">
-                                    <div class="md:col-span-2 text-sm font-semibold text-yellow-400" id="adminSecurityEditName"></div>
-                                    <div class="flex flex-col">
-                                        <label for="adminSecurityUsername" class="text-sm font-semibold mb-1">Username</label>
-                                        <input type="text" id="adminSecurityUsername" placeholder="Login Username" autocomplete="off" class="px-3 py-2 rounded-lg bg-poker-primary border border-poker-accent text-poker-text">
-                                    </div>
-                                    <div class="flex flex-col">
-                                        <label for="adminSecurityPassword" class="text-sm font-semibold mb-1">Password</label>
-                                        <input type="password" id="adminSecurityPassword" placeholder="Leave blank to keep current password" autocomplete="new-password" class="px-3 py-2 rounded-lg bg-poker-primary border border-poker-accent text-poker-text">
-                                    </div>
-                                    <div class="md:col-span-2 flex flex-wrap gap-2">
-                                        <button type="submit" class="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg font-medium text-white">Save Login</button>
-                                        <button type="button" onclick="cancelAdminSecurityEdit()" class="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 rounded-lg font-medium text-white">Cancel</button>
-                                    </div>
                                 </form>
                             </div>
                             <div id="adminSection-backup-restore" class="admin-settings-section">
@@ -3172,13 +3131,13 @@
         
         <!-- Version Number - Appears on all pages -->
         <div id="appVersionFooterWrap" class="text-center mt-4 pt-3 border-t border-poker-accent/20">
-            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.10.30.14</p>
+            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.10.30.15</p>
         </div>
     </div>
 
     <script>
         const PASC_APP_NAME = 'Poker Manager';
-        const PASC_APP_VERSION = '2026.10.30.14';
+        const PASC_APP_VERSION = '2026.10.30.15';
 
         // Poker Manager Firebase project. This is not the original poker-pasc project.
         const FIREBASE_CONFIG = {
@@ -11304,22 +11263,69 @@
             return adminSettings.masterPasswordHash || DEFAULT_MASTER_PASSWORD_HASH;
         }
 
-        function populateMasterPasswordForm() {
-            const input = document.getElementById('adminMasterPassword');
-            if (input) input.value = '';
+        function updateAdminPlayerLoginFields() {
+            const show = document.getElementById('adminPlayerCommittee')?.value === 'yes';
+            document.getElementById('adminPlayerUsernameField')?.classList.toggle('hidden', !show);
+            document.getElementById('adminPlayerPasswordField')?.classList.toggle('hidden', !show);
         }
 
-        async function saveMasterPassword() {
-            const input = document.getElementById('adminMasterPassword');
-            const password = (input?.value || '').trim();
-            if (!password) {
-                showToast('Please enter a new Master Password.', 'error');
-                return;
+        function resetAdminPlayerLoginInputs() {
+            const usernameInput = document.getElementById('adminPlayerUsername');
+            const passwordInput = document.getElementById('adminPlayerPassword');
+            if (usernameInput) usernameInput.value = '';
+            if (passwordInput) {
+                passwordInput.value = '';
+                passwordInput.placeholder = 'Local login password';
             }
-            adminSettings.masterPasswordHash = await sha256(password);
-            saveAdminSettings();
-            if (input) input.value = '';
-            showToast('Master Password saved.', 'success');
+            updateAdminPlayerLoginFields();
+        }
+
+        async function applyCommitteeLocalLogin(player, existingPlayer, editIdx) {
+            if (player.committee !== 'yes') {
+                return true;
+            }
+
+            const loginUsername = (document.getElementById('adminPlayerUsername')?.value || '').trim();
+            const loginPassword = document.getElementById('adminPlayerPassword')?.value || '';
+            if (!loginUsername) {
+                showToast('Please enter a local username for this committee member.', 'error');
+                return false;
+            }
+            if (loginUsername.includes('@')) {
+                showToast('A local username cannot be an email address.', 'error');
+                return false;
+            }
+
+            const loginUserHash = await sha256(normalizeAdminUsername(loginUsername));
+            if (loginUserHash === OWNER_USER_HASH || loginUserHash === DEV_USER_HASH) {
+                showToast('That username is reserved. Choose a different one.', 'error');
+                return false;
+            }
+
+            const duplicate = adminPlayers.some((p, i) =>
+                i !== editIdx &&
+                p.loginUserHash &&
+                p.loginUserHash === loginUserHash
+            );
+            if (duplicate) {
+                showToast('That login username is already in use.', 'error');
+                return false;
+            }
+
+            let loginPasswordHash;
+            if (!loginPassword && existingPlayer?.loginPasswordHash) {
+                loginPasswordHash = existingPlayer.loginPasswordHash;
+            } else if (!loginPassword) {
+                showToast('Please enter a local password for this committee member.', 'error');
+                return false;
+            } else {
+                loginPasswordHash = await sha256(loginPassword);
+            }
+
+            player.loginUsername = loginUsername;
+            player.loginUserHash = loginUserHash;
+            player.loginPasswordHash = loginPasswordHash;
+            return true;
         }
         function populateAdminSettingsForm() {
             normalizeAdminSettings();
@@ -11389,73 +11395,6 @@
             container.appendChild(table);
         }
 
-        function renderAdminSecurityList() {
-            const container = document.getElementById('adminSecurityList');
-            if (!container) return;
-            container.innerHTML = '';
-
-            const members = adminPlayers
-                .map((player, idx) => ({ player, idx }))
-                .filter(({ player }) => player.committee === 'yes')
-                .sort((a, b) => (a.player.name || '').localeCompare(b.player.name || ''));
-
-            if (members.length === 0) {
-                container.innerHTML = '<div class="text-gray-400">No committee members yet. Mark a player as committee in Player Management.</div>';
-                return;
-            }
-
-            const table = document.createElement('table');
-            table.className = 'min-w-full text-sm';
-            table.innerHTML = `<thead><tr class='bg-[#056d78]/50'>
-                <th class='px-2 py-0.5 text-left'>Name</th><th class='px-2 py-0.5 text-left'>Username</th><th class='px-2 py-0.5 text-left'>Password</th><th class='px-2 py-0.5 text-left'>Edit</th></tr></thead><tbody></tbody>`;
-            members.forEach(({ player, idx }) => {
-                const row = document.createElement('tr');
-                const username = player.loginUsername ? player.loginUsername : 'Not set';
-                const passwordStatus = player.loginPasswordHash ? 'Set' : 'Not set';
-                row.innerHTML = `
-                    <td class='px-2 py-0.5 text-left'>${player.name}</td>
-                    <td class='px-2 py-0.5 text-left'>${username}</td>
-                    <td class='px-2 py-0.5 text-left'>${passwordStatus}</td>
-                    <td class='px-2 py-0.5 text-left'><button class='text-yellow-400 underline' onclick='editAdminSecurityLogin(${idx})'>Edit</button></td>
-                `;
-                table.querySelector('tbody').appendChild(row);
-            });
-            container.appendChild(table);
-        }
-
-        function editAdminSecurityLogin(idx) {
-            const player = adminPlayers[idx];
-            if (!player || player.committee !== 'yes') return;
-            showAdminSettingsSection('security');
-            const form = document.getElementById('adminSecurityForm');
-            const editIdx = document.getElementById('adminSecurityEditIdx');
-            const editName = document.getElementById('adminSecurityEditName');
-            const usernameInput = document.getElementById('adminSecurityUsername');
-            const passwordInput = document.getElementById('adminSecurityPassword');
-            if (!form || !editIdx || !editName || !usernameInput || !passwordInput) return;
-            editIdx.value = String(idx);
-            editName.textContent = `Editing login for ${player.name}`;
-            usernameInput.value = player.loginUsername || '';
-            passwordInput.value = '';
-            passwordInput.placeholder = player.loginPasswordHash ? 'Leave blank to keep current password' : 'Login Password';
-            form.classList.remove('hidden');
-        }
-
-        function cancelAdminSecurityEdit() {
-            const form = document.getElementById('adminSecurityForm');
-            const editIdx = document.getElementById('adminSecurityEditIdx');
-            const editName = document.getElementById('adminSecurityEditName');
-            const usernameInput = document.getElementById('adminSecurityUsername');
-            const passwordInput = document.getElementById('adminSecurityPassword');
-            if (form) form.classList.add('hidden');
-            if (editIdx) editIdx.value = '';
-            if (editName) editName.textContent = '';
-            if (usernameInput) usernameInput.value = '';
-            if (passwordInput) {
-                passwordInput.value = '';
-                passwordInput.placeholder = 'Login Password';
-            }
-        }
         let registrationNames = [];
         let dropdownActiveIndex = -1;
         let activePlayerDropdown = { inputId: 'playerName', dropdownId: 'playerNameDropdown', autoRegister: true };
@@ -11612,7 +11551,6 @@
 
         function refreshAfterClubDataChange() {
             renderAdminPlayersList();
-            renderAdminSecurityList();
             renderRegistrationDatalist();
             populateAdminGeneralForm();
             populateAdminSettingsForm();
@@ -11731,6 +11669,14 @@
             document.getElementById('adminPlayerYears').value = p.years;
             document.getElementById('adminPlayerMember').value = p.member;
             document.getElementById('adminPlayerCommittee').value = p.committee;
+            const usernameInput = document.getElementById('adminPlayerUsername');
+            const passwordInput = document.getElementById('adminPlayerPassword');
+            if (usernameInput) usernameInput.value = p.loginUsername || '';
+            if (passwordInput) {
+                passwordInput.value = '';
+                passwordInput.placeholder = p.loginPasswordHash ? 'Leave blank to keep current password' : 'Local login password';
+            }
+            updateAdminPlayerLoginFields();
             document.getElementById('adminPlayerForm').setAttribute('data-edit-idx', idx);
         }
         async function deleteAdminPlayer(idx) {
@@ -11950,7 +11896,6 @@
             populateAdminSettingsForm();
             populateAdminSeasonNumberForm();
             renderAdminPlayersList();
-            renderAdminSecurityList();
             renderAdminGameManagement();
             renderPointsTablePage();
             populateAdminBonusHandForm();
@@ -11967,6 +11912,9 @@
             }
             if (sectionId === 'remote-sync' && !canSeeDevOnlySettings()) {
                 sectionId = 'general';
+            }
+            if (sectionId === 'security') {
+                sectionId = 'player-management';
             }
 
             document.querySelectorAll('.admin-settings-section').forEach((section) => {
@@ -11987,11 +11935,6 @@
                     break;
                 case 'player-management':
                     renderAdminPlayersList();
-                    break;
-                case 'security':
-                    renderAdminSecurityList();
-                    cancelAdminSecurityEdit();
-                    populateMasterPasswordForm();
                     break;
                 case 'game-management':
                     renderAdminGameManagement();
@@ -12041,7 +11984,6 @@
             updateShowNextBlindLevelToggleButton();
             updateNextBlindVisibility();
             renderAdminGameManagement();
-            renderAdminSecurityList();
             applyClubBranding();
             let savedSection = localStorage.getItem('pokerManager.adminSettingsSection') || 'backup-restore';
             if (['club', 'season-number', 'table-assignments'].includes(savedSection)) {
@@ -12052,6 +11994,9 @@
             }
             if (savedSection === 'remote-sync' && !canSeeDevOnlySettings()) {
                 savedSection = 'general';
+            }
+            if (savedSection === 'security') {
+                savedSection = 'player-management';
             }
             updateRemoteSyncSettingsVisibility();
             updateClubMailLinkFieldVisibility();
@@ -12130,65 +12075,6 @@
                     sessionUserBtn?.setAttribute('aria-expanded', 'false');
                 }
             });
-            const adminSecurityForm = document.getElementById('adminSecurityForm');
-            if (adminSecurityForm) {
-                adminSecurityForm.addEventListener('submit', async function(e) {
-                    e.preventDefault();
-                    const editIdx = parseInt(document.getElementById('adminSecurityEditIdx').value, 10);
-                    if (isNaN(editIdx) || !adminPlayers[editIdx]) return;
-
-                    const loginUsername = document.getElementById('adminSecurityUsername').value.trim();
-                    const loginPassword = document.getElementById('adminSecurityPassword').value;
-                    const existingPlayer = adminPlayers[editIdx];
-
-                    if (!loginUsername) {
-                        showToast('Please enter a username.', 'error');
-                        return;
-                    }
-
-                    const loginUserHash = await sha256(normalizeAdminUsername(loginUsername));
-                    if (loginUserHash === OWNER_USER_HASH) {
-                        showToast('That username is reserved. Choose a different one.', 'error');
-                        return;
-                    }
-                    if (loginUserHash === DEV_USER_HASH) {
-                        showToast('That username is reserved. Choose a different one.', 'error');
-                        return;
-                    }
-
-                    const duplicate = adminPlayers.some((p, i) =>
-                        i !== editIdx &&
-                        p.loginUserHash &&
-                        p.loginUserHash === loginUserHash
-                    );
-                    if (duplicate) {
-                        showToast('That login username is already in use.', 'error');
-                        return;
-                    }
-
-                    let loginPasswordHash;
-                    if (!loginPassword && existingPlayer.loginPasswordHash) {
-                        loginPasswordHash = existingPlayer.loginPasswordHash;
-                    } else {
-                        if (!loginPassword) {
-                            showToast('Please enter a password.', 'error');
-                            return;
-                        }
-                        loginPasswordHash = await sha256(loginPassword);
-                    }
-
-                    adminPlayers[editIdx] = {
-                        ...existingPlayer,
-                        loginUsername,
-                        loginUserHash,
-                        loginPasswordHash
-                    };
-                    persistAdminPlayers();
-                    cancelAdminSecurityEdit();
-                    renderAdminSecurityList();
-                    showToast('Login details saved!', 'success');
-                });
-            }
             // Admin player add/update
             const adminPlayerForm = document.getElementById('adminPlayerForm');
             if (adminPlayerForm) {
@@ -12208,11 +12094,7 @@
                     const existingPlayer = editIdx !== null ? adminPlayers[editIdx] : null;
                     const player = { name, email, phone, dob, years, member, committee };
 
-                    if (existingPlayer?.loginUsername) {
-                        player.loginUsername = existingPlayer.loginUsername;
-                        player.loginUserHash = existingPlayer.loginUserHash;
-                        player.loginPasswordHash = existingPlayer.loginPasswordHash;
-                    }
+                    if (!(await applyCommitteeLocalLogin(player, existingPlayer, editIdx))) return;
 
                     if (editIdx !== null) {
                         adminPlayers[editIdx] = player;
@@ -12222,10 +12104,10 @@
                     }
                     persistAdminPlayers();
                     renderAdminPlayersList();
-                    renderAdminSecurityList();
                     renderRegistrationDatalist();
                     adminPlayerForm.reset();
                     adminPlayerForm.removeAttribute('data-edit-idx');
+                    resetAdminPlayerLoginInputs();
                 });
             }
             const adminGeneralForm = document.getElementById('adminGeneralForm');
