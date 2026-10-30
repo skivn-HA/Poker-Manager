@@ -2612,7 +2612,6 @@
                             </div>
                             <div id="adminSection-general" class="admin-settings-section hidden">
                                 <h3>General</h3>
-                                <p class="admin-section-intro">Club name, club logo, season number, table seating limits, season final qualification rules, and whether the Remote tab appears in the main navigation.</p>
                                 <form id="adminGeneralForm">
                                     <div class="admin-general-field">
                                         <label for="adminClubName" class="text-sm font-semibold">Club Name</label>
@@ -2676,7 +2675,7 @@
                                     <div class="admin-general-field">
                                         <span class="text-sm font-semibold">Email stats when a game is saved</span>
                                         <button type="button" onclick="toggleEmailStatsOnSave()" id="toggleEmailStatsOnSaveBtn" class="pasc-switch self-start mt-1" role="switch" aria-checked="true" aria-label="Email stats when a game is saved"></button>
-                                        <p class="text-xs text-poker-text/70 mt-1">Sends from the club Gmail when you are signed in with a club email. A username login still only saves on this device.</p>
+                                        <p class="text-xs text-poker-text/70 mt-1">Sends to all members from the club Gmail account.</p>
                                         <label for="adminStatsEmailWebAppUrl" class="text-sm font-semibold mt-2">Club mail link</label>
                                         <div class="flex items-center gap-2 mt-1" style="width:100%; max-width:36rem;">
                                             <input type="text" id="adminStatsEmailWebAppUrl" placeholder="Paste the Google script web app link" autocomplete="off" spellcheck="false" class="club-mail-link-hidden px-3 py-2 rounded-lg bg-poker-primary border border-poker-accent text-poker-text" style="flex:1; min-width:0;">
@@ -2982,13 +2981,13 @@
         
         <!-- Version Number - Appears on all pages -->
         <div id="appVersionFooterWrap" class="text-center mt-4 pt-3 border-t border-poker-accent/20">
-            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.10.30.2</p>
+            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.10.30.3</p>
         </div>
     </div>
 
     <script>
         const PASC_APP_NAME = 'Poker Manager';
-        const PASC_APP_VERSION = '2026.10.30.2';
+        const PASC_APP_VERSION = '2026.10.30.3';
 
         // Poker Manager Firebase project. This is not the original poker-pasc project.
         const FIREBASE_CONFIG = {
