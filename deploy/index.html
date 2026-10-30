@@ -379,6 +379,113 @@
             }
         }
 
+        .tables-board {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1.25rem 1rem;
+            align-items: start;
+        }
+
+        .tables-board.tables-count-1 {
+            max-width: 50%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .table-visual {
+            position: relative;
+            width: 100%;
+        }
+
+        .table-visual img {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        .table-final-badge {
+            position: absolute;
+            left: 50%;
+            top: 27%;
+            transform: translate(-50%, -50%);
+            background: #0f6a38;
+            color: #facc15;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            font-size: 1.35rem;
+            line-height: 1;
+            padding: 0.35rem 0.85rem;
+            border-radius: 0.35rem;
+            z-index: 2;
+        }
+
+        .table-seat {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.2rem;
+            max-width: 34%;
+            pointer-events: auto;
+        }
+
+        .table-seat-chip {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            max-width: 100%;
+            background: rgba(8, 10, 12, 0.88);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.45);
+            border-radius: 999px;
+            padding: 0.15rem 0.45rem 0.15rem 0.15rem;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+        }
+
+        .table-seat-num {
+            flex-shrink: 0;
+            width: 1.35rem;
+            height: 1.35rem;
+            border-radius: 999px;
+            background: #facc15;
+            color: #111;
+            font-weight: 800;
+            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .table-seat-name {
+            font-size: 0.78rem;
+            font-weight: 650;
+            line-height: 1.15;
+            text-align: left;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 8.5rem;
+        }
+
+        .table-seat-action button {
+            margin-left: 0 !important;
+            padding: 0.1rem 0.45rem;
+            font-size: 0.65rem;
+        }
+
+        @media (max-width: 767px) {
+            .tables-board.tables-count-1 {
+                max-width: none;
+            }
+
+            .table-seat-name {
+                max-width: 4.6rem;
+                font-size: 0.65rem;
+            }
+        }
+
         #admin #adminPanelSection .admin-section-divider {
             border-top: 1px solid rgba(209, 213, 219, 0.4);
             margin-top: 0.25rem;
@@ -1828,9 +1935,10 @@
                 <h3>Typical game night flow</h3>
                 <ul>
                     <li><strong>Settings:</strong> Confirm club name, season, blinds, payout %, and optional features (ghost player, bonus hand, raffle, teams event, game vouchers, remote, numbers).</li>
-                    <li><strong>Registration:</strong> Enter game details, add players, assign tables, then press <strong>START GAME</strong>.</li>
+                    <li><strong>Registration:</strong> Enter game details, add players, and assign tables.</li>
+                    <li><strong>Tables:</strong> Open Tables and press <strong>START GAME</strong>. Seats are shown around each table.</li>
                     <li><strong>Blind Timer:</strong> Run the clock, announce blinds, and (if Remote is enabled) show the join code/QR for phones.</li>
-                    <li><strong>Eliminate players</strong> from Table Assignments or from a joined phone Remote until one winner remains.</li>
+                    <li><strong>Eliminate players</strong> from the Tables tab or from a joined phone Remote until one winner remains.</li>
                     <li><strong>Game Dashboard:</strong> Review cash, pools, and results, then <strong>Save Game</strong> to the Points Table.</li>
                     <li>Optionally email or print the game stats. With a club email, Save Game also updates the shared season.</li>
                 </ul>
@@ -1838,7 +1946,8 @@
                 <h3>Main tabs</h3>
                 <p>The tab for the page you are on is highlighted orange. Log out is the user icon at the top right, not a tab.</p>
                 <ul>
-                    <li><strong>Registration:</strong> Game details, player check-in, table assignments, raffle cash (if enabled), start game.</li>
+                    <li><strong>Registration:</strong> Game details, player check-in, assign tables, raffle cash (if enabled).</li>
+                    <li><strong>Tables:</strong> Shown once tables are assigned. Start Game is at the top. Players sit around the table images. Hidden again if the game is cleared.</li>
                     <li><strong>Game Dashboard:</strong> Live cash breakdown, prize pools, ghost/bonus/bad beat tracking, points for the current game, save/email/print.</li>
                     <li><strong>Blind Timer:</strong> Levels, countdown, fullscreen timer, voice announcements, cash prize display.</li>
                     <li><strong>Numbers:</strong> Random number picker for draws or side games. Hidden until enabled in Settings → General.</li>
@@ -1852,7 +1961,7 @@
                     <li>Players can be typed in or chosen from the Player Management list.</li>
                     <li>Tables fill using the <strong>Maximum Players per Table</strong> setting.</li>
                     <li><strong>Teams Event</strong> (if enabled in Settings → General) appears in Game Details and lets players compete in pairs. When disabled, the option is hidden.</li>
-                    <li>After Start Game, use <strong>Eliminate</strong> on each player. When one player remains, use <strong>Winner</strong>.</li>
+                    <li>After Assign Tables, open <strong>Tables</strong> and press <strong>START GAME</strong>. Use <strong>Eliminate</strong> on a seat. When one player remains, use <strong>Winner</strong>.</li>
                     <li>The app can auto-combine remaining players toward a final table as seats free up.</li>
                 </ul>
 
@@ -1978,6 +2087,11 @@
                         <i class="fas fa-user-plus mr-2"></i>Registration
                     </button>
                 </li>
+                <li data-requires-full-access id="navTables" class="hidden">
+                    <button data-page="tables" onclick="showPage('tables')" class="px-4 py-2 bg-[#056d78] hover:bg-orange-500 text-white rounded-lg transition-colors duration-300 font-semibold shadow">
+                        <i class="fas fa-users mr-2"></i>Tables
+                    </button>
+                </li>
                 <li data-requires-full-access>
                     <button data-page="stats" onclick="showPage('stats')" class="px-4 py-2 bg-[#056d78] hover:bg-orange-500 text-white rounded-lg transition-colors duration-300 font-semibold shadow">
                         <i class="fas fa-chart-bar mr-2"></i>Game Dashboard
@@ -2074,29 +2188,6 @@
                             </button>
                         </div>
                     </div>
-
-                    <div id="tablesContainer" class="bg-poker-secondary rounded-xl shadow-2xl p-6 border border-poker-accent/20">
-                        <div class="flex flex-wrap items-center gap-4 mb-4">
-                            <h2 class="text-2xl font-bold text-yellow-400">
-                                <i class="fas fa-users mr-2"></i>Table Assignments
-                            </h2>
-                            <button id="startGameBtn" onclick="startGame()" class="hidden px-8 py-3 bg-green-600 hover:bg-green-700 rounded-lg font-bold text-lg transition-colors duration-300 text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-green-600">
-                                <i class="fas fa-play mr-2"></i>START GAME
-                            </button>
-                        </div>
-                        <div id="tablesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            <!-- Tables will be added here -->
-                        </div>
-                        <div id="eliminatedPlayersSection" class="hidden mt-6 border-t border-poker-accent/20 pt-4">
-                            <div class="eliminated-players-header">
-                                <h3 class="font-semibold text-red-400">
-                                    <i class="fas fa-skull mr-1"></i>Eliminated Players
-                                </h3>
-                                <button type="button" id="toggleEliminatedPlayersBtn" onclick="toggleEliminatedPlayersList()">Show</button>
-                            </div>
-                            <div id="eliminatedPlayersList" class="hidden"></div>
-                        </div>
-                    </div>
                     </div>
                     <!-- Game Type & Buy In Card -->
                     <div id="registrationSideColumn" class="flex flex-col gap-2">
@@ -2185,6 +2276,30 @@
                                 <input type="number" id="gameVouchersRegistration" min="0" step="1" value="0" oninput="syncGameVouchersInput('gameVouchersRegistration')" class="w-20 flex-shrink-0 px-2 py-2 rounded-lg bg-poker-primary border border-poker-accent text-poker-text focus:outline-none focus:ring-2 focus:ring-poker-highlight text-center" aria-label="Game Vouchers Used">
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tables Page -->
+            <div id="tables" class="page hidden">
+                <div id="tablesContainer" class="bg-poker-secondary rounded-xl shadow-2xl p-6 border border-poker-accent/20">
+                    <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+                        <h2 class="text-2xl font-bold text-yellow-400">
+                            <i class="fas fa-users mr-2"></i>Tables
+                        </h2>
+                        <button id="startGameBtn" onclick="startGame()" class="hidden px-8 py-3 bg-green-600 hover:bg-green-700 rounded-lg font-bold text-lg transition-colors duration-300 text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-green-600">
+                            <i class="fas fa-play mr-2"></i>START GAME
+                        </button>
+                    </div>
+                    <div id="tablesList" class="tables-board"></div>
+                    <div id="eliminatedPlayersSection" class="hidden mt-6 border-t border-poker-accent/20 pt-4">
+                        <div class="eliminated-players-header">
+                            <h3 class="font-semibold text-red-400">
+                                <i class="fas fa-skull mr-1"></i>Eliminated Players
+                            </h3>
+                            <button type="button" id="toggleEliminatedPlayersBtn" onclick="toggleEliminatedPlayersList()">Show</button>
+                        </div>
+                        <div id="eliminatedPlayersList" class="hidden"></div>
                     </div>
                 </div>
             </div>
@@ -2983,13 +3098,13 @@
         
         <!-- Version Number - Appears on all pages -->
         <div id="appVersionFooterWrap" class="text-center mt-4 pt-3 border-t border-poker-accent/20">
-            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.10.30.5</p>
+            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.10.30.6</p>
         </div>
     </div>
 
     <script>
         const PASC_APP_NAME = 'Poker Manager';
-        const PASC_APP_VERSION = '2026.10.30.5';
+        const PASC_APP_VERSION = '2026.10.30.6';
 
         // Poker Manager Firebase project. This is not the original poker-pasc project.
         const FIREBASE_CONFIG = {
@@ -3392,6 +3507,18 @@
             updateRemoteControlNavVisibility();
             updateRandomNumberGeneratorNavVisibility();
             updateRemoteJoinedNavVisibility();
+            updateTablesNavVisibility();
+        }
+
+        function updateTablesNavVisibility() {
+            const nav = document.getElementById('navTables');
+            if (!nav) return;
+            const show = hasFullAppAccess() && (isGameStarted() || (Array.isArray(tables) && tables.length > 0));
+            nav.classList.toggle('hidden', !show);
+            if (!show) {
+                const page = document.getElementById('tables');
+                if (page && !page.classList.contains('hidden')) showPage('registration');
+            }
         }
 
         function getRemoteControlSettings() {
@@ -3719,7 +3846,7 @@
                 pageId = 'remote-control';
             }
 
-            const restrictedPages = ['registration', 'stats', 'admin', 'remote-control'];
+            const restrictedPages = ['registration', 'tables', 'stats', 'admin', 'remote-control'];
             if (!hasFullAppAccess() && restrictedPages.includes(pageId)) {
                 showPage('points-table');
                 return;
@@ -3735,6 +3862,11 @@
 
             if (pageId === 'numbers' && !getRandomNumberGeneratorSettings().enabled) {
                 showPage(hasFullAppAccess() ? 'registration' : 'points-table');
+                return;
+            }
+
+            if (pageId === 'tables' && !isGameStarted() && (!Array.isArray(tables) || tables.length === 0)) {
+                showPage('registration');
                 return;
             }
 
@@ -3755,7 +3887,7 @@
             if (pageId === 'stats') {
                 updateStats();
             }
-            if (pageId === 'registration') {
+            if (pageId === 'registration' || pageId === 'tables') {
                 renderTables();
             }
             if (pageId === 'blind-timer') {
@@ -5019,6 +5151,7 @@
                 renderTables();
                 renderPlayersList();
                 updateStats();
+                showPage('tables');
                 return;
             }
             
@@ -5076,6 +5209,7 @@
             renderTables();
             renderPlayersList();
             updateStats();
+            showPage('tables');
         }
         
         function syncTablesAfterRegistrationChange() {
@@ -5242,45 +5376,63 @@
             return `<button onclick="eliminatePlayer(${player.id})" class="px-3 py-1 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 rounded text-xs font-bold ml-2 text-white shadow">Eliminate</button>`;
         }
 
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function tableFeltImageSrc(tableNumber) {
+            if (tableNumber === 'final') return 'images/table-1.webp';
+            const n = parseInt(tableNumber, 10);
+            const index = Number.isFinite(n) && n > 0 ? ((n - 1) % 4) + 1 : 1;
+            return `images/table-${index}.webp`;
+        }
+
+        function getTableSeatPosition(index, count) {
+            const total = Math.max(count, 1);
+            const angle = (Math.PI / 2) + ((index * 2 * Math.PI) / total);
+            return {
+                x: 50 + Math.cos(angle) * 37,
+                y: 50 + Math.sin(angle) * 40
+            };
+        }
+
         function renderTables() {
             const container = document.getElementById('tablesList');
+            if (!container) return;
             container.innerHTML = '';
-            tables.forEach(tableNumber => {
+            container.classList.toggle('tables-count-1', tables.length === 1);
+            tables.forEach((tableNumber) => {
                 const seats = getTableSeatEntries(tableNumber);
-                const tableCard = document.createElement('div');
                 const isFinal = tableNumber === 'final';
-                tableCard.className = `rounded-xl shadow border ${isFinal ? 'border-yellow-400/40' : 'border-poker-accent/10'} bg-poker-primary`;
-                // Use 'Final Table' if tableNumber is 'final'
                 const tableTitle = isFinal ? 'Final Table' : `Table ${tableNumber}`;
-                const headerClass = isFinal
-                    ? 'bg-yellow-600'
-                    : 'bg-[#056d78]';
-                const headerIcon = isFinal ? 'fa-trophy' : 'fa-users';
+                const tableCard = document.createElement('div');
+                tableCard.className = 'table-visual';
                 tableCard.innerHTML = `
-                    <div class=\"${headerClass} px-4 py-3 flex items-center justify-center gap-2\">
-                        <i class=\"fas ${headerIcon} text-white\"></i>
-                        <h3 class=\"text-xl font-bold text-white\">${tableTitle}</h3>
-                    </div>
-                    <div class=\"p-4 space-y-2\">
-                        ${seats.map((seat, idx) => {
-                            const primary = seat.members[0];
-                            const committeeIcon = seat.members.some((m) => m.isCommittee)
-                                ? '<i class="fas fa-crown text-yellow-400 ml-2" title="Committee Member"></i>'
-                                : '';
-                            const birthdayIcon = seat.members.map((m) => getBirthdayIcon(m)).join('');
-                            return `
-                            <div class="flex justify-between items-center p-2 rounded-lg border border-poker-accent/10 transition-colors bg-poker-secondary hover:border-poker-highlight/40">
-                                <div class="flex items-center gap-2 min-w-0">
-                                    <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-poker-highlight text-poker-primary font-extrabold text-2xl shadow flex-shrink-0">${idx + 1}</span>
-                                    <span class="text-white font-medium break-words">${seat.label}</span>${birthdayIcon}${committeeIcon}
+                    <img src="${tableFeltImageSrc(tableNumber)}" alt="${escapeHtml(tableTitle)}">
+                    ${isFinal ? '<div class="table-final-badge">FINAL</div>' : ''}
+                    ${seats.map((seat, idx) => {
+                        const primary = seat.members[0];
+                        const pos = getTableSeatPosition(idx, seats.length);
+                        const committeeIcon = seat.members.some((m) => m.isCommittee)
+                            ? '<i class="fas fa-crown text-yellow-400" title="Committee Member"></i>'
+                            : '';
+                        const birthdayIcon = seat.members.map((m) => getBirthdayIcon(m)).join('');
+                        const action = getTablePlayerActionButton(primary);
+                        return `
+                            <div class="table-seat" style="left:${pos.x}%;top:${pos.y}%">
+                                <div class="table-seat-chip" title="${escapeHtml(seat.label)}">
+                                    <span class="table-seat-num">${idx + 1}</span>
+                                    <span class="table-seat-name">${escapeHtml(seat.label)}</span>
+                                    ${birthdayIcon}${committeeIcon}
                                 </div>
-                                <div class="flex items-center gap-1 flex-shrink-0">
-                                    ${getTablePlayerActionButton(primary)}
-                                </div>
+                                ${action ? `<div class="table-seat-action">${action}</div>` : ''}
                             </div>
                         `;
-                        }).join('')}
-                    </div>
+                    }).join('')}
                 `;
                 container.appendChild(tableCard);
             });
@@ -5291,12 +5443,14 @@
 
         function updateStartGameButton() {
             const btn = document.getElementById('startGameBtn');
-            if (!btn) return;
-            const hasTables = tables.length > 0;
-            const gameType = (document.getElementById('gameType')?.value || '').trim();
-            btn.classList.toggle('hidden', !hasTables);
-            btn.disabled = !gameType;
-            btn.title = gameType ? '' : 'Select a game type in Game Details before starting';
+            if (btn) {
+                const hasTables = tables.length > 0;
+                const gameType = (document.getElementById('gameType')?.value || '').trim();
+                btn.classList.toggle('hidden', !hasTables);
+                btn.disabled = !gameType;
+                btn.title = gameType ? '' : 'Select a game type in Game Details before starting';
+            }
+            updateTablesNavVisibility();
         }
         
         async function clearPlayers() {
@@ -8966,7 +9120,7 @@
                 refreshAfterClubDataChange();
                 if (!hasFullAppAccess()) {
                     const openPage = document.querySelector('.page:not(.hidden)');
-                    if (openPage && ['registration', 'stats', 'admin', 'remote-control'].includes(openPage.id)) {
+                    if (openPage && ['registration', 'tables', 'stats', 'admin', 'remote-control'].includes(openPage.id)) {
                         showPage('points-table');
                     }
                 }

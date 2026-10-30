@@ -1,4 +1,4 @@
-const CACHE_NAME = 'poker-manager-v18';
+const CACHE_NAME = 'poker-manager-v19';
 
 const PRECACHE_ASSETS = [
   './index.html',
@@ -9,6 +9,10 @@ const PRECACHE_ASSETS = [
   './icons/icon-maskable-512.png',
   './images/Poker-Manager-logo-sml-optimized.png',
   './images/poker_manager_120_transparent.png',
+  './images/table-1.webp',
+  './images/table-2.webp',
+  './images/table-3.webp',
+  './images/table-4.webp',
   './Logos/Logo-S19-1.1.png',
   './Logos/Logo-S19-2.png',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
