@@ -2676,12 +2676,14 @@
                                         <span class="text-sm font-semibold">Email stats when a game is saved</span>
                                         <button type="button" onclick="toggleEmailStatsOnSave()" id="toggleEmailStatsOnSaveBtn" class="pasc-switch self-start mt-1" role="switch" aria-checked="true" aria-label="Email stats when a game is saved"></button>
                                         <p class="text-xs text-poker-text/70 mt-1">Sends to all members from the club Gmail account.</p>
-                                        <label for="adminStatsEmailWebAppUrl" class="text-sm font-semibold mt-2">Club mail link</label>
-                                        <div class="flex items-center gap-2 mt-1" style="width:100%; max-width:36rem;">
-                                            <input type="text" id="adminStatsEmailWebAppUrl" placeholder="Paste the Google script web app link" autocomplete="off" spellcheck="false" class="club-mail-link-hidden px-3 py-2 rounded-lg bg-poker-primary border border-poker-accent text-poker-text" style="flex:1; min-width:0;">
-                                            <button type="button" id="toggleStatsEmailWebAppUrlBtn" onclick="toggleClubMailLinkVisibility()" class="text-poker-text/70 hover:text-white px-2 py-2" aria-label="Show club mail link" title="Show club mail link">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
+                                        <div id="clubMailLinkField" class="hidden">
+                                            <label for="adminStatsEmailWebAppUrl" class="text-sm font-semibold mt-2">Club mail link</label>
+                                            <div class="flex items-center gap-2 mt-1" style="width:100%; max-width:36rem;">
+                                                <input type="text" id="adminStatsEmailWebAppUrl" placeholder="Paste the Google script web app link" autocomplete="off" spellcheck="false" class="club-mail-link-hidden px-3 py-2 rounded-lg bg-poker-primary border border-poker-accent text-poker-text" style="flex:1; min-width:0;">
+                                                <button type="button" id="toggleStatsEmailWebAppUrlBtn" onclick="toggleClubMailLinkVisibility()" class="text-poker-text/70 hover:text-white px-2 py-2" aria-label="Show club mail link" title="Show club mail link">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                     <button type="submit" class="self-start mt-1 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg font-medium text-white">Save Settings</button>
@@ -2981,13 +2983,13 @@
         
         <!-- Version Number - Appears on all pages -->
         <div id="appVersionFooterWrap" class="text-center mt-4 pt-3 border-t border-poker-accent/20">
-            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.10.30.3</p>
+            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.10.30.4</p>
         </div>
     </div>
 
     <script>
         const PASC_APP_NAME = 'Poker Manager';
-        const PASC_APP_VERSION = '2026.10.30.3';
+        const PASC_APP_VERSION = '2026.10.30.4';
 
         // Poker Manager Firebase project. This is not the original poker-pasc project.
         const FIREBASE_CONFIG = {
@@ -3306,6 +3308,19 @@
             return getLoggedInRole() === 'dev';
         }
 
+        function canSeeClubMailLink() {
+            if (isDevLoggedIn()) return true;
+            const email = (getClubCloudUser()?.email || '').trim().toLowerCase();
+            const kind = sessionStorage.getItem(APP_LOGIN_KIND_KEY);
+            return email === 'dev@pasc.com' && kind !== 'local';
+        }
+
+        function updateClubMailLinkFieldVisibility() {
+            const field = document.getElementById('clubMailLinkField');
+            if (!field) return;
+            field.classList.toggle('hidden', !canSeeClubMailLink());
+        }
+
         function updateRemoteSyncSettingsVisibility() {
             const isDev = isDevLoggedIn();
             document.querySelectorAll('.admin-settings-nav-btn[data-admin-section="remote-sync"]').forEach((btn) => {
@@ -3366,6 +3381,7 @@
                 item.classList.toggle('hidden', !fullAccess);
             });
             updateRemoteSyncSettingsVisibility();
+            updateClubMailLinkFieldVisibility();
             updateRemoteControlNavVisibility();
             updateRandomNumberGeneratorNavVisibility();
             updateRemoteJoinedNavVisibility();
@@ -6990,6 +7006,7 @@
             updateGameVouchersToggleButton();
             updateGameVouchersVisibility();
             updateEmailStatsOnSaveToggleButton();
+            updateClubMailLinkFieldVisibility();
             const statsMailInput = document.getElementById('adminStatsEmailWebAppUrl');
             if (statsMailInput) statsMailInput.value = getStatsEmailSettings().webAppUrl;
         }
@@ -11754,6 +11771,7 @@
                 savedSection = 'general';
             }
             updateRemoteSyncSettingsVisibility();
+            updateClubMailLinkFieldVisibility();
             showAdminSettingsSection(savedSection);
         }
 
@@ -11967,7 +11985,11 @@
                     adminSettings.minGamesForSeasonFinal = minGamesForSeasonFinal;
                     adminSettings.remoteCodeDisplayMinutes = remoteCodeDisplayMinutes;
                     adminSettings.gameVoucherValue = gameVoucherValue;
-                    adminSettings.statsEmailWebAppUrl = (document.getElementById('adminStatsEmailWebAppUrl')?.value || '').trim();
+                    const statsMailInput = document.getElementById('adminStatsEmailWebAppUrl');
+                    const mailField = document.getElementById('clubMailLinkField');
+                    if (statsMailInput && mailField && !mailField.classList.contains('hidden')) {
+                        adminSettings.statsEmailWebAppUrl = statsMailInput.value.trim();
+                    }
                     saveAdminSettings();
                     populateAdminGeneralForm();
                     applyClubBranding();
