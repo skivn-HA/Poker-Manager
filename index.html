@@ -386,10 +386,25 @@
             align-items: start;
         }
 
-        .tables-board.tables-count-1 {
-            max-width: 50%;
-            margin-left: auto;
-            margin-right: auto;
+        .tables-board.tables-stacked {
+            grid-template-columns: minmax(0, 1fr);
+            justify-items: center;
+            gap: 1.75rem;
+        }
+
+        .tables-board.tables-stacked .table-visual {
+            width: min(92%, 56rem);
+        }
+
+        .tables-board.tables-stacked .table-seat-name {
+            font-size: 0.95rem;
+            max-width: 12rem;
+        }
+
+        .tables-board.tables-stacked .table-seat-num {
+            width: 1.6rem;
+            height: 1.6rem;
+            font-size: 0.95rem;
         }
 
         .table-visual {
@@ -476,10 +491,11 @@
         }
 
         @media (max-width: 767px) {
-            .tables-board.tables-count-1 {
-                max-width: none;
+            .tables-board.tables-stacked .table-visual {
+                width: 100%;
             }
 
+            .tables-board.tables-stacked .table-seat-name,
             .table-seat-name {
                 max-width: 4.6rem;
                 font-size: 0.65rem;
@@ -3098,13 +3114,13 @@
         
         <!-- Version Number - Appears on all pages -->
         <div id="appVersionFooterWrap" class="text-center mt-4 pt-3 border-t border-poker-accent/20">
-            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.10.30.6</p>
+            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.10.30.7</p>
         </div>
     </div>
 
     <script>
         const PASC_APP_NAME = 'Poker Manager';
-        const PASC_APP_VERSION = '2026.10.30.6';
+        const PASC_APP_VERSION = '2026.10.30.7';
 
         // Poker Manager Firebase project. This is not the original poker-pasc project.
         const FIREBASE_CONFIG = {
@@ -5404,7 +5420,7 @@
             const container = document.getElementById('tablesList');
             if (!container) return;
             container.innerHTML = '';
-            container.classList.toggle('tables-count-1', tables.length === 1);
+            container.classList.toggle('tables-stacked', tables.length === 1 || tables.length === 2);
             tables.forEach((tableNumber) => {
                 const seats = getTableSeatEntries(tableNumber);
                 const isFinal = tableNumber === 'final';
