@@ -1339,6 +1339,54 @@
             transform: translateY(-5px);
             box-shadow: 0 10px 20px rgba(247, 147, 26, 0.3);
         }
+
+        #playersList.players-list-teams {
+            grid-template-columns: 1fr;
+        }
+
+        @media (min-width: 768px) {
+            #playersList.players-list-teams {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .team-reg-card {
+            border: 2px solid rgba(250, 204, 21, 0.85);
+            border-radius: 0.85rem;
+            padding: 0.55rem 0.7rem 0.7rem;
+            background: rgba(17, 24, 39, 0.45);
+        }
+
+        .team-reg-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.4rem;
+            color: #facc15;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .team-reg-members {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .team-reg-member {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(17, 24, 39, 0.9);
+            border-radius: 0.55rem;
+            padding: 0.55rem 0.7rem;
+        }
+
+        .team-reg-member.eliminated {
+            opacity: 0.6;
+        }
         
         .eliminated {
             opacity: 0.6;
@@ -3135,13 +3183,13 @@
         
         <!-- Version Number - Appears on all pages -->
         <div id="appVersionFooterWrap" class="text-center mt-4 pt-3 border-t border-poker-accent/20">
-            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.10.30.18</p>
+            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.10.30.19</p>
         </div>
     </div>
 
     <script>
         const PASC_APP_NAME = 'Poker Manager';
-        const PASC_APP_VERSION = '2026.10.30.18';
+        const PASC_APP_VERSION = '2026.10.30.19';
 
         // Poker Manager Firebase project. This is not the original poker-pasc project.
         const FIREBASE_CONFIG = {
@@ -4518,22 +4566,57 @@
         function renderPlayersList() {
             const container = document.getElementById('playersList');
             container.innerHTML = '';
-            players.forEach(player => {
-                const playerCard = document.createElement('div');
-                playerCard.className = `player-card bg-poker-primary rounded-lg p-4 shadow ${player.eliminated ? 'eliminated' : ''}`;
-                const committeeIcon = player.isCommittee ? '<i class="fas fa-crown text-yellow-400 ml-2" title="Committee Member"></i>' : '';
-                const birthdayIcon = getBirthdayIcon(player);
-                const teammate = player.teamId
-                    ? players.find((p) => p.teamId === player.teamId && p.id !== player.id)
-                    : null;
-                const teamLabel = teammate
-                    ? `<div class="text-xs text-poker-text/60 mt-1">Team with ${teammate.name}</div>`
-                    : '';
-                playerCard.innerHTML = `
-                    <div class=\"flex justify-between items-center\">\n                <div class=\"flex items-center\">\n                    <span class=\"font-bold text-yellow-400\">#${player.number}</span>\n                    <span class=\"ml-2\">${player.name}</span>${birthdayIcon}\n                </div>\n                <div class=\"flex items-center\">\n                        ${committeeIcon}<button onclick=\"removePlayer(${player.id})\" class=\"ml-2 text-red-400 hover:text-red-200\" title=\"Remove player\"><i class=\"fas fa-times\"></i></button>
+            const teamsMode = isTeamsEvent() && players.some((player) => player.teamId);
+            container.classList.toggle('players-list-teams', teamsMode);
+
+            if (!teamsMode) {
+                players.forEach(player => {
+                    const playerCard = document.createElement('div');
+                    playerCard.className = `player-card bg-poker-primary rounded-lg p-4 shadow ${player.eliminated ? 'eliminated' : ''}`;
+                    const committeeIcon = player.isCommittee ? '<i class="fas fa-crown text-yellow-400 ml-2" title="Committee Member"></i>' : '';
+                    const birthdayIcon = getBirthdayIcon(player);
+                    playerCard.innerHTML = `
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <span class="font-bold text-yellow-400">#${player.number}</span>
+                                <span class="ml-2">${player.name}</span>${birthdayIcon}
+                            </div>
+                            <div class="flex items-center">
+                                ${committeeIcon}<button onclick="removePlayer(${player.id})" class="ml-2 text-red-400 hover:text-red-200" title="Remove player"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(playerCard);
+                });
+                updateRegistrationTablesLayout();
+                return;
+            }
+
+            const seenTeams = new Set();
+            players.forEach((player) => {
+                if (!player.teamId || seenTeams.has(player.teamId)) return;
+                seenTeams.add(player.teamId);
+                const members = players.filter((p) => p.teamId === player.teamId);
+                const card = document.createElement('div');
+                card.className = 'team-reg-card';
+                const memberRows = members.map((member) => {
+                    const committeeIcon = member.isCommittee ? '<i class="fas fa-crown text-yellow-400 ml-2" title="Committee Member"></i>' : '';
+                    const birthdayIcon = getBirthdayIcon(member);
+                    return `
+                        <div class="team-reg-member ${member.eliminated ? 'eliminated' : ''}">
+                            <span class="font-bold text-yellow-400">#${member.number}</span>
+                            <span class="flex-1">${member.name}</span>${birthdayIcon}${committeeIcon}
+                        </div>
+                    `;
+                }).join('');
+                card.innerHTML = `
+                    <div class="team-reg-head">
+                        <span><i class="fas fa-user-friends mr-1"></i>Team</span>
+                        <button type="button" onclick="removePlayer(${members[0].id})" class="text-red-400 hover:text-red-200" title="Remove team"><i class="fas fa-times"></i></button>
                     </div>
-            </div>${teamLabel}\n        `;
-                container.appendChild(playerCard);
+                    <div class="team-reg-members">${memberRows}</div>
+                `;
+                container.appendChild(card);
             });
             updateRegistrationTablesLayout();
         }
