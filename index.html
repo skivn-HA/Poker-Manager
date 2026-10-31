@@ -196,6 +196,14 @@
             outline: 2px solid #f7931a;
             outline-offset: 2px;
         }
+
+        #admin #adminGeneralForm .admin-email-toggle.is-unavailable {
+            opacity: 0.45;
+        }
+
+        #admin #adminGeneralForm .admin-email-toggle.is-unavailable .pasc-switch {
+            cursor: not-allowed;
+        }
         
         @keyframes fadeIn {
             from { opacity: 0; }
@@ -2128,7 +2136,7 @@
                 <h3>Shared season</h3>
                 <ul>
                     <li>The server file is the latest players, settings, pools, and saved games. Other committee members receive it when they sign in with a club email.</li>
-                    <li><strong>Save Game</strong> uploads it automatically for a committee email login. With <strong>Email stats when a game is saved</strong> turned on, that same login also emails the stats from the club Gmail to every player email address. <strong>Email only to committee members</strong> limits that email to committee addresses. A username login does not send that email.</li>
+                    <li><strong>Save Game</strong> uploads it automatically for a committee email login. With <strong>Email stats when a game is saved</strong> turned on, that same login also emails the stats from the club Gmail to every player email address. <strong>Email only to committee members</strong> limits that email to committee addresses, and it turns off with the main email switch. A username login does not send that email.</li>
                     <li><strong>Publish from this device</strong> sends this device’s season to the server. Use it on the laptop that has the real latest season when the server is still empty, or when this device should replace the server copy.</li>
                     <li><strong>Load latest from server</strong> replaces this device with the server file.</li>
                     <li>On email login, if this device does not already match the server, choose <strong>Load latest</strong> or <strong>Keep this device</strong>. Keeping this device does not overwrite the server.</li>
@@ -3220,13 +3228,13 @@
         
         <!-- Version Number - Appears on all pages -->
         <div id="appVersionFooterWrap" class="text-center mt-4 pt-3 border-t border-poker-accent/20">
-            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.11.01.1</p>
+            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.11.01.2</p>
         </div>
     </div>
 
     <script>
         const PASC_APP_NAME = 'Poker Manager';
-        const PASC_APP_VERSION = '2026.11.01.1';
+        const PASC_APP_VERSION = '2026.11.01.2';
 
         // Poker Manager Firebase project. This is not the original poker-pasc project.
         const FIREBASE_CONFIG = {
@@ -7369,26 +7377,39 @@
         }
 
         function updateEmailStatsCommitteeOnlyToggleButton() {
-            setToggleSwitchState('toggleEmailStatsCommitteeOnlyBtn', getStatsEmailSettings().committeeOnly);
+            const settings = getStatsEmailSettings();
+            setToggleSwitchState('toggleEmailStatsCommitteeOnlyBtn', settings.enabled && settings.committeeOnly);
+            const wrap = document.getElementById('toggleEmailStatsCommitteeOnlyBtn')?.closest('.admin-email-toggle');
+            if (wrap) wrap.classList.toggle('is-unavailable', !settings.enabled);
         }
 
         function updateEmailStatsRecipientHint() {
             const hint = document.getElementById('emailStatsRecipientHint');
             if (!hint) return;
-            hint.textContent = getStatsEmailSettings().committeeOnly
+            const settings = getStatsEmailSettings();
+            hint.textContent = settings.enabled && settings.committeeOnly
                 ? 'Sends to committee members from the club Gmail account.'
                 : 'Sends to all members from the club Gmail account.';
         }
 
         function toggleEmailStatsOnSave() {
             normalizeAdminSettings();
-            adminSettings.emailStatsOnSave = !getStatsEmailSettings().enabled;
+            const turningOn = !getStatsEmailSettings().enabled;
+            adminSettings.emailStatsOnSave = turningOn;
+            if (!turningOn) adminSettings.emailStatsCommitteeOnly = false;
             saveAdminSettings();
             updateEmailStatsOnSaveToggleButton();
+            updateEmailStatsCommitteeOnlyToggleButton();
+            updateEmailStatsRecipientHint();
         }
 
         function toggleEmailStatsCommitteeOnly() {
             normalizeAdminSettings();
+            if (!getStatsEmailSettings().enabled) {
+                showToast('Turn on Email stats when a game is saved first.', 'info');
+                updateEmailStatsCommitteeOnlyToggleButton();
+                return;
+            }
             adminSettings.emailStatsCommitteeOnly = !getStatsEmailSettings().committeeOnly;
             saveAdminSettings();
             updateEmailStatsCommitteeOnlyToggleButton();
@@ -11442,6 +11463,7 @@
             if (adminSettings.showNextBlindLevel == null) adminSettings.showNextBlindLevel = true;
             if (adminSettings.emailStatsOnSave == null) adminSettings.emailStatsOnSave = true;
             if (adminSettings.emailStatsCommitteeOnly == null) adminSettings.emailStatsCommitteeOnly = false;
+            if (adminSettings.emailStatsOnSave === false) adminSettings.emailStatsCommitteeOnly = false;
             if (adminSettings.statsEmailWebAppUrl == null) adminSettings.statsEmailWebAppUrl = '';
             if (!adminSettings.masterPasswordHash) adminSettings.masterPasswordHash = DEFAULT_MASTER_PASSWORD_HASH;
         }
