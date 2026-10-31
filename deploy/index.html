@@ -597,6 +597,19 @@
             flex-wrap: wrap;
         }
 
+        #admin #adminGeneralForm .admin-email-toggles {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            gap: 0.75rem 2.5rem;
+        }
+
+        #admin #adminGeneralForm .admin-email-toggle {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
         #admin #adminGeneralForm .admin-general-input-row p {
             margin: 0;
             flex: 1;
@@ -2099,7 +2112,7 @@
                 <h3>Settings overview</h3>
                 <p>Optional features are switched on and off with small slider switches — green means enabled, grey means disabled. Switch changes save immediately; other fields use the Save Settings button.</p>
                 <ul>
-                    <li><strong>General:</strong> Club name, club logo, season, max players/table, season-final qualification, and switches for Raffle Cash, Teams Event, Game Vouchers (with voucher value), Remote Control (with QR display minutes), the Random Number Generator, and emailing stats when a game is saved.</li>
+                    <li><strong>General:</strong> Club name, club logo, season, max players/table, season-final qualification, and switches for Raffle Cash, Teams Event, Game Vouchers (with voucher value), Remote Control (with QR display minutes), the Random Number Generator, emailing stats when a game is saved, and emailing those stats to committee members only.</li>
                     <li><strong>Blind Timer:</strong> Voice, blind levels, set all times, breaks, and whether the next blind level is shown.</li>
                     <li><strong>Club Cash &amp; Payout:</strong> Club vs player cash split and 1st/2nd place payout %. 3rd place is calculated from the remainder.</li>
                     <li><strong>Bonuses:</strong> Ghost Player, Bonus Hand, Bad Beat, and Birthday — optional season features and pool amounts.</li>
@@ -2115,7 +2128,7 @@
                 <h3>Shared season</h3>
                 <ul>
                     <li>The server file is the latest players, settings, pools, and saved games. Other committee members receive it when they sign in with a club email.</li>
-                    <li><strong>Save Game</strong> uploads it automatically for a committee email login. With <strong>Email stats when a game is saved</strong> turned on, that same login also emails the stats from the club Gmail to every player email address. A username login does not send that email.</li>
+                    <li><strong>Save Game</strong> uploads it automatically for a committee email login. With <strong>Email stats when a game is saved</strong> turned on, that same login also emails the stats from the club Gmail to every player email address. <strong>Email only to committee members</strong> limits that email to committee addresses. A username login does not send that email.</li>
                     <li><strong>Publish from this device</strong> sends this device’s season to the server. Use it on the laptop that has the real latest season when the server is still empty, or when this device should replace the server copy.</li>
                     <li><strong>Load latest from server</strong> replaces this device with the server file.</li>
                     <li>On email login, if this device does not already match the server, choose <strong>Load latest</strong> or <strong>Keep this device</strong>. Keeping this device does not overwrite the server.</li>
@@ -2890,9 +2903,17 @@
                                         <button type="button" onclick="toggleRandomNumberGeneratorEnabled()" id="toggleRandomNumberGeneratorBtn" class="pasc-switch self-start mt-1" role="switch" aria-checked="false" aria-label="Random Number Generator"></button>
                                     </div>
                                     <div class="admin-general-field">
-                                        <span class="text-sm font-semibold">Email stats when a game is saved</span>
-                                        <button type="button" onclick="toggleEmailStatsOnSave()" id="toggleEmailStatsOnSaveBtn" class="pasc-switch self-start mt-1" role="switch" aria-checked="true" aria-label="Email stats when a game is saved"></button>
-                                        <p class="text-xs text-poker-text/70 mt-1">Sends to all members from the club Gmail account.</p>
+                                        <div class="admin-email-toggles">
+                                            <div class="admin-email-toggle">
+                                                <span class="text-sm font-semibold">Email stats when a game is saved</span>
+                                                <button type="button" onclick="toggleEmailStatsOnSave()" id="toggleEmailStatsOnSaveBtn" class="pasc-switch self-start mt-1" role="switch" aria-checked="true" aria-label="Email stats when a game is saved"></button>
+                                            </div>
+                                            <div class="admin-email-toggle">
+                                                <span class="text-sm font-semibold">Email only to committee members</span>
+                                                <button type="button" onclick="toggleEmailStatsCommitteeOnly()" id="toggleEmailStatsCommitteeOnlyBtn" class="pasc-switch self-start mt-1" role="switch" aria-checked="false" aria-label="Email only to committee members"></button>
+                                            </div>
+                                        </div>
+                                        <p class="text-xs text-poker-text/70 mt-1" id="emailStatsRecipientHint">Sends to all members from the club Gmail account.</p>
                                         <div id="clubMailLinkField" class="hidden">
                                             <label for="adminStatsEmailWebAppUrl" class="text-sm font-semibold mt-2">Club mail link</label>
                                             <div class="flex items-center gap-2 mt-1" style="width:100%; max-width:36rem;">
@@ -3199,13 +3220,13 @@
         
         <!-- Version Number - Appears on all pages -->
         <div id="appVersionFooterWrap" class="text-center mt-4 pt-3 border-t border-poker-accent/20">
-            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.10.30.20</p>
+            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.11.01.1</p>
         </div>
     </div>
 
     <script>
         const PASC_APP_NAME = 'Poker Manager';
-        const PASC_APP_VERSION = '2026.10.30.20';
+        const PASC_APP_VERSION = '2026.11.01.1';
 
         // Poker Manager Firebase project. This is not the original poker-pasc project.
         const FIREBASE_CONFIG = {
@@ -7315,6 +7336,8 @@
             updateGameVouchersToggleButton();
             updateGameVouchersVisibility();
             updateEmailStatsOnSaveToggleButton();
+            updateEmailStatsCommitteeOnlyToggleButton();
+            updateEmailStatsRecipientHint();
             updateClubMailLinkFieldVisibility();
             const statsMailInput = document.getElementById('adminStatsEmailWebAppUrl');
             if (statsMailInput) statsMailInput.value = getStatsEmailSettings().webAppUrl;
@@ -7330,12 +7353,31 @@
             normalizeAdminSettings();
             return {
                 enabled: adminSettings.emailStatsOnSave !== false,
+                committeeOnly: adminSettings.emailStatsCommitteeOnly === true,
                 webAppUrl: (adminSettings.statsEmailWebAppUrl || '').trim()
             };
         }
 
+        function getStatsEmailRecipients() {
+            return getStatsEmailSettings().committeeOnly
+                ? getCommitteeMemberEmails()
+                : getAdminPlayerEmails();
+        }
+
         function updateEmailStatsOnSaveToggleButton() {
             setToggleSwitchState('toggleEmailStatsOnSaveBtn', getStatsEmailSettings().enabled);
+        }
+
+        function updateEmailStatsCommitteeOnlyToggleButton() {
+            setToggleSwitchState('toggleEmailStatsCommitteeOnlyBtn', getStatsEmailSettings().committeeOnly);
+        }
+
+        function updateEmailStatsRecipientHint() {
+            const hint = document.getElementById('emailStatsRecipientHint');
+            if (!hint) return;
+            hint.textContent = getStatsEmailSettings().committeeOnly
+                ? 'Sends to committee members from the club Gmail account.'
+                : 'Sends to all members from the club Gmail account.';
         }
 
         function toggleEmailStatsOnSave() {
@@ -7343,6 +7385,14 @@
             adminSettings.emailStatsOnSave = !getStatsEmailSettings().enabled;
             saveAdminSettings();
             updateEmailStatsOnSaveToggleButton();
+        }
+
+        function toggleEmailStatsCommitteeOnly() {
+            normalizeAdminSettings();
+            adminSettings.emailStatsCommitteeOnly = !getStatsEmailSettings().committeeOnly;
+            saveAdminSettings();
+            updateEmailStatsCommitteeOnlyToggleButton();
+            updateEmailStatsRecipientHint();
         }
 
         function toggleClubMailLinkVisibility() {
@@ -7458,9 +7508,10 @@
             if (!settings.webAppUrl) {
                 return { message: savedMessage + ' Add the club mail link in Settings → General to email the stats.', type: 'info' };
             }
-            const recipients = getAdminPlayerEmails();
+            const recipients = getStatsEmailRecipients();
             if (!recipients.length) {
-                return { message: savedMessage + ' No player email addresses to send to.', type: 'info' };
+                const who = settings.committeeOnly ? 'committee member' : 'player';
+                return { message: savedMessage + ` No ${who} email addresses to send to.`, type: 'info' };
             }
             if (!report) return { message: savedMessage, type: 'success' };
             try {
@@ -10822,9 +10873,10 @@
 
             const subject = encodeURIComponent(report.heading);
             const body = encodeURIComponent(buildStatsEmailText(report));
-            const recipientEmails = getAdminPlayerEmails();
+            const recipientEmails = getStatsEmailRecipients();
             if (recipientEmails.length === 0) {
-                showToast('No email addresses found in Settings > Player Management.', 'error');
+                const who = getStatsEmailSettings().committeeOnly ? 'committee member' : 'player';
+                showToast(`No ${who} email addresses found in Settings > Player Management.`, 'error');
                 return;
             }
             const recipients = recipientEmails.join('; ');
@@ -11389,6 +11441,7 @@
             if (adminSettings.gameVoucherValue == null) adminSettings.gameVoucherValue = 50;
             if (adminSettings.showNextBlindLevel == null) adminSettings.showNextBlindLevel = true;
             if (adminSettings.emailStatsOnSave == null) adminSettings.emailStatsOnSave = true;
+            if (adminSettings.emailStatsCommitteeOnly == null) adminSettings.emailStatsCommitteeOnly = false;
             if (adminSettings.statsEmailWebAppUrl == null) adminSettings.statsEmailWebAppUrl = '';
             if (!adminSettings.masterPasswordHash) adminSettings.masterPasswordHash = DEFAULT_MASTER_PASSWORD_HASH;
         }
@@ -11901,6 +11954,7 @@
                 gameVoucherValue: 50,
                 showNextBlindLevel: true,
                 emailStatsOnSave: true,
+                emailStatsCommitteeOnly: false,
                 statsEmailWebAppUrl: '',
                 masterPasswordHash: DEFAULT_MASTER_PASSWORD_HASH
             };
