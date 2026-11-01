@@ -405,8 +405,8 @@
         }
 
         .tables-board.tables-stacked .table-seat-name {
-            font-size: 0.95rem;
-            max-width: 12rem;
+            font-size: 1.1rem;
+            max-width: 13rem;
         }
 
         .tables-board.tables-stacked .table-seat-num {
@@ -482,14 +482,14 @@
         }
 
         .table-seat-name {
-            font-size: 0.78rem;
+            font-size: 0.92rem;
             font-weight: 650;
             line-height: 1.15;
             text-align: left;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            max-width: 8.5rem;
+            max-width: 9.25rem;
         }
 
         .table-seat-action button {
@@ -505,8 +505,8 @@
 
             .tables-board.tables-stacked .table-seat-name,
             .table-seat-name {
-                max-width: 4.6rem;
-                font-size: 0.65rem;
+                max-width: 5.4rem;
+                font-size: 0.78rem;
             }
         }
 
@@ -3228,13 +3228,13 @@
         
         <!-- Version Number - Appears on all pages -->
         <div id="appVersionFooterWrap" class="text-center mt-4 pt-3 border-t border-poker-accent/20">
-            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.11.01.3</p>
+            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.11.01.4</p>
         </div>
     </div>
 
     <script>
         const PASC_APP_NAME = 'Poker Manager';
-        const PASC_APP_VERSION = '2026.11.01.3';
+        const PASC_APP_VERSION = '2026.11.01.4';
 
         // Poker Manager Firebase project. This is not the original poker-pasc project.
         const FIREBASE_CONFIG = {
@@ -5274,6 +5274,12 @@
             if (liveSyncRole === 'host') publishLiveGameState();
         }
 
+        function playerFirstName(name) {
+            const trimmed = String(name || '').trim();
+            const first = trimmed.split(/\s+/)[0];
+            return first || trimmed;
+        }
+
         function getTableSeatEntries(tableNumber) {
             const tablePlayers = players.filter((p) => tableMatches(p.table, tableNumber) && !p.eliminated);
             if (isTeamsEvent() && isTeamsPairedSeatingPhase()) {
@@ -5286,10 +5292,15 @@
                     const members = player.teamId
                         ? tablePlayers.filter((p) => p.teamId === player.teamId)
                         : [player];
+                    const fullLabel = members.map((m) => m.name).join(' & ');
+                    const label = tableNumber === 'final' && members.length > 1
+                        ? members.map((m) => playerFirstName(m.name)).join(' & ')
+                        : fullLabel;
                     seats.push({
                         id: members[0].id,
                         members,
-                        label: members.map((m) => m.name).join(' & ')
+                        label,
+                        fullLabel
                     });
                 });
                 return seats;
@@ -5589,7 +5600,7 @@
                         const action = getTablePlayerActionButton(primary);
                         return `
                             <div class="table-seat" style="left:${pos.x}%;top:${pos.y}%">
-                                <div class="table-seat-chip" title="${escapeHtml(seat.label)}">
+                                <div class="table-seat-chip" title="${escapeHtml(seat.fullLabel || seat.label)}">
                                     <span class="table-seat-num">${idx + 1}</span>
                                     <span class="table-seat-name">${escapeHtml(seat.label)}</span>
                                     ${birthdayIcon}${committeeIcon}
