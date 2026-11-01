@@ -2077,7 +2077,7 @@
                 <ul>
                     <li>Players can be typed in or chosen from the Player Management list.</li>
                     <li>Tables fill using the <strong>Maximum Players per Table</strong> setting.</li>
-                    <li><strong>Teams Event</strong> (if enabled in Settings → General) appears in Game Details and lets players compete in pairs. When disabled, the option is hidden.</li>
+                    <li><strong>Teams Event</strong> (if enabled in Settings → General) appears in Game Details and lets players compete in pairs. Each player on a team receives half of that place's points. When disabled, the option is hidden.</li>
                     <li>After Assign Tables, open <strong>Tables</strong> and press <strong>START GAME</strong>. Use <strong>Eliminate</strong> on a seat. When one player remains, use <strong>Winner</strong>.</li>
                     <li>The app can auto-combine remaining players toward a final table as seats free up.</li>
                 </ul>
@@ -3228,13 +3228,13 @@
         
         <!-- Version Number - Appears on all pages -->
         <div id="appVersionFooterWrap" class="text-center mt-4 pt-3 border-t border-poker-accent/20">
-            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.11.01.2</p>
+            <p id="appVersionFooter" class="text-sm text-poker-text/60">Poker Manager v2026.11.01.3</p>
         </div>
     </div>
 
     <script>
         const PASC_APP_NAME = 'Poker Manager';
-        const PASC_APP_VERSION = '2026.11.01.2';
+        const PASC_APP_VERSION = '2026.11.01.3';
 
         // Poker Manager Firebase project. This is not the original poker-pasc project.
         const FIREBASE_CONFIG = {
@@ -7716,6 +7716,10 @@
             return 0;
         }
 
+        function getTeamMemberPoints(place) {
+            return getPlacePoints(place) / 2;
+        }
+
         function splitPrizeBetweenTeam(fullPrize, memberCount, memberIndex) {
             if (!(fullPrize > 0) || memberCount <= 0) return 0;
             const base = Math.floor((fullPrize / memberCount) * 100) / 100;
@@ -7756,7 +7760,7 @@
                     results.push({
                         name: player.name,
                         place,
-                        points: getPlacePoints(place),
+                        points: getTeamMemberPoints(place),
                         cashWon: splitPrizeBetweenTeam(fullPrize, members.length, idx),
                         teamId
                     });
@@ -8729,9 +8733,9 @@
             const ghostFeatureEnabled = getGhostPlayerCashSettings().enabled;
             const teamsMode = isTeamsEvent();
 
-            function appendPointsRow(player, place, prizeOverride = null) {
-                let points = 0;
-                if (place >= 1 && place <= 8) points = pointsArr[place - 1];
+            function appendPointsRow(player, place, prizeOverride = null, pointsOverride = null) {
+                let points = pointsOverride != null ? pointsOverride : 0;
+                if (pointsOverride == null && place >= 1 && place <= 8) points = pointsArr[place - 1];
                 let prize = '';
                 let medal = '';
                 let ghostLabel = '';
@@ -8770,12 +8774,12 @@
                     const player = players.find((p) => p.name.toLowerCase() === result.name.toLowerCase());
                     if (player && !seen.has(player.id)) {
                         seen.add(player.id);
-                        orderedPlayers.push({ player, place: result.place, cashWon: result.cashWon });
+                        orderedPlayers.push({ player, place: result.place, cashWon: result.cashWon, points: result.points });
                     }
                 });
-                orderedPlayers.forEach(({ player, place, cashWon }) => {
+                orderedPlayers.forEach(({ player, place, cashWon, points }) => {
                     const prizeText = place <= 3 ? formatPrizeAmount(cashWon) : null;
-                    appendPointsRow(player, place, prizeText);
+                    appendPointsRow(player, place, prizeText, points);
                 });
                 snapListRowsToDevicePixels(container, 2);
                 return;
@@ -10714,38 +10718,16 @@
         }
 
         function buildEmailPointsTableText() {
-            const pointsArr = [100, 80, 60, 50, 40, 30, 20, 10];
-            const totalPlayers = players.length;
-            const winner = getPointsTableWinner();
-            const payout1st = document.getElementById('payout1st')?.textContent || '$0';
-            const payout2nd = document.getElementById('payout2nd')?.textContent || '$0';
-            const payout3rd = document.getElementById('payout3rd')?.textContent || '$0';
             const medals = { 1: '🥇', 2: '🥈', 3: '🥉' };
             const placeSuffix = (place) => (place === 1 ? 'st' : place === 2 ? 'nd' : place === 3 ? 'rd' : 'th');
-            const rows = [];
-
-            function formatRow(player, place) {
-                let points = 0;
-                if (place >= 1 && place <= 8) points = pointsArr[place - 1];
-                const placeLabel = `${place}${placeSuffix(place)}${medals[place] || ''}`;
-                if (place <= 3) {
-                    const prizes = { 1: payout1st, 2: payout2nd, 3: payout3rd };
-                    return `${placeLabel} ${formatEmailMoney(prizes[place], true)} - ${player.name} - ${points} pts`;
+            return getGameResults().map((result) => {
+                const placeLabel = `${result.place}${placeSuffix(result.place)}${medals[result.place] || ''}`;
+                const points = result.points || 0;
+                if (result.place <= 3) {
+                    return `${placeLabel} ${formatEmailMoney(result.cashWon, true)} - ${result.name} - ${points} pts`;
                 }
-                return `${placeLabel} - ${player.name} - ${points} pts`;
-            }
-
-            if (totalPlayers >= 2 && winner) {
-                rows.push(formatRow(winner, 1));
-            }
-            for (let i = eliminatedPlayers.length - 1; i >= 0; i--) {
-                const player = eliminatedPlayers[i];
-                if (!player.eliminated) continue;
-                const place = totalPlayers - i;
-                if (winner && (place === 1 || player.id === winner.id)) continue;
-                rows.push(formatRow(player, place));
-            }
-            return rows.join('\n');
+                return `${placeLabel} - ${result.name} - ${points} pts`;
+            }).join('\n');
         }
 
         function getEmailPoolStatusLabel(wonThisGame) {
